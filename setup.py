@@ -21,9 +21,9 @@ if os.getuid() == 0:  # root
 
 requirements = [
     "Django>=3.2,<3.3",  # when upgrading, upgrade also django-two-factor-auth!
-    "pytz>=2013b,<=2021.1",
+    "pytz",
     "sqlalchemy<1.5",
-    "beautifulsoup4<4.10",
+    "beautifulsoup4",
     "PyYAML<5.5",
     "python-dateutil<2.9",
     "django-two-factor-auth==1.13.2",
@@ -33,12 +33,11 @@ requirements = [
     "coreapi>=2.3.0,<2.4",
     "dj-pagination==2.5",
     "django-compressor==2.4.1",  # latest version
-    "pygments<2.6",
+    "pygments",
     "django-libsass>=0.7,<=0.8",
     "django-debug-toolbar>=3.0,<=3.3",
     "django-extensions>=3.0,<=3.2",  # Django 2.2
-    "djangorestframework>=3.10,<3.13",
-    "werkzeug<1.1",
+    "djangorestframework",
     'pytest==4.6.11',
     'pytest-metadata==1.11.0',
     'pytest-django==3.10.0',
@@ -48,28 +47,27 @@ requirements = [
     'requests<3',
     "fpdf<1.8",
     "unicodecsv<0.15",
-    "shortuuid<1",
+    "shortuuid",
     "dnslib<0.10",
-    "bleach>=3.1.0,<3.2",
-    "chardet<4.1",
+    "bleach",
+    "chardet",
     "django-gravatar2<1.5",
-    "django-mptt>=0.10,<=0.12",
-    "mistune<0.9",
-    "pika<1.3",
+    "django-mptt",
+    "mistune",
+    "pika",
     "raven<6.11",
-    "unidecode<1.3",
+    "unidecode",
     "sentry-sdk",
-    "fontawesomefree==6.1.1",
+    "fontawesomefree",
     # A library allowing to nest inlines in django admin.
     # Used in quizzes module for adding new quizzes.
-    "django-nested-admin<3.4",
+    "django-nested-admin",
     # SIO2 dependencies:
     "filetracker>=2.1.5,<3.0",
-    "django-simple-captcha>=0.5.16,<=0.5.18",
+    "django-simple-captcha",
     # HOTFIX
     "phonenumbers<8.13",
-    # this is the last pdfminer.six version to support python2
-    "pdfminer.six==20191110",
+    "pdfminer.six",
     # https://stackoverflow.com/questions/73929564/entrypoints-object-has-no-attribute-get-digital-ocean
     "importlib-metadata<5.0",
 ]
