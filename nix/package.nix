@@ -420,6 +420,10 @@ let
     version = "2.11.1";
     hash = "sha256-NZlS2dObn4ItnSkyRIPnugSjoX3X0FqmvrfqAeNZ5fc=";
   };
+  o-mistune = overridePackage mistune {
+    version = "0.8.4";
+    hash = "sha256-WaNCnbU8ULXGvMigf4hIywDX3IvbQxpKtBkg0gHUdW4=";
+  };
   o-fontawesomefree = simplePackage rec {
     name = "fontawesomefree";
     version = "6.3.0";
@@ -513,7 +517,7 @@ buildPythonPackage rec {
     chardet
     django-gravatar2
     django-mptt
-    mistune
+    o-mistune
     pika
     raven
     unidecode

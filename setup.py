@@ -53,7 +53,7 @@ requirements = [
     "chardet",
     "django-gravatar2<1.5",
     "django-mptt",
-    "mistune",
+    "mistune==0.8.4",
     "pika",
     "raven<6.11",
     "unidecode",
