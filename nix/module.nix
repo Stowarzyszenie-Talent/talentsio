@@ -144,7 +144,7 @@ in
     };
 
     rabbitmqUrl = lib.mkOption {
-      default = "amqp://oioioi:oioioi@127.0.0.1:${config.services.rabbitmq.port}//";
+      default = "amqp://oioioi:oioioi@localhost:${builtins.toString config.services.rabbitmq.port}//";
       description = "The RabbitMQ URL in amqp format SIO2 processes should connect to";
       type = lib.types.str;
     };
@@ -198,19 +198,19 @@ in
       writePython38 = pkgs.writers.makePythonWriter python pkgs.python38Packages /* FIXME: build packages? */ pkgs.python38Packages;
       writePython38Bin = name: writePython38 "/bin/${name}";
 
-      finalSimpleSettings =
-        baseSettings // (builtins.foldl' (a: b: a // b) { } (builtins.filter builtins.isAttrs cfg.extraSettings)) // {
-          SERVER = "uwsgi";
+      finalSimpleSettings = baseSettings // (builtins.foldl' (a: b: a // b) { } (builtins.filter builtins.isAttrs cfg.extraSettings)) // {
+        SERVER = "uwsgi";
+        BROKER_URL = cfg.rabbitmqUrl;
 
-          DATABASES.default = {
-            ENGINE = "django.db.backends.postgresql";
-            ATOMIC_REQUESTS = true;
-            NAME = "sio2";
-            USER = "sio2";
-            PASSWORD = "";
-            HOST = "";
-          };
+        DATABASES.default = {
+          ENGINE = "django.db.backends.postgresql";
+          ATOMIC_REQUESTS = true;
+          NAME = "sio2";
+          USER = "sio2";
+          PASSWORD = "";
+          HOST = "";
         };
+      };
       finalSettingsText = lib.concatMapStrings (x: if lib.hasSuffix "\n" x then x else x + "\n") ([
         "# Settings header\n"
         (builtins.readFile ./settings-header.py)
@@ -323,6 +323,10 @@ in
         ];
       };
 
+      services.rabbitmq = {
+        enable = true;
+      };
+
       system.activationScripts.copy-sio2-etc-defaults = ''
         if [[ ! -e /etc/sio2 ]]; then
           mkdir -m=775 -p /etc/sio2
@@ -343,8 +347,8 @@ in
 
       systemd.services =
         let
-          mkSioProcess = { name, requiresDatabase, requiresFiletracker, ... }@x:
-            let extraRequires = (lib.optionals requiresDatabase [ "postgresql.service" "sio2-migrate.service" ]) ++ (lib.optional requiresFiletracker "filetracker.service");
+          mkSioProcess = { name, requiresDatabase, requiresFiletracker, requiresRabbitmq ? requiresFiletracker, ... }@x:
+            let extraRequires = (lib.optionals requiresDatabase [ "postgresql.service" "sio2-migrate.service" ]) ++ (lib.optional requiresFiletracker "filetracker.service") ++ (lib.optional requiresRabbitmq "sio2-rabbitmq.service");
             in
             {
               enable = true;
@@ -379,7 +383,7 @@ in
                 ProtectKernelLogs = true;
                 PrivateDevices = true;
               } // (builtins.removeAttrs (x.serviceConfig or { }) [ "ReadWritePaths" "SupplementaryGroups" ]);
-            } // (builtins.removeAttrs x [ "name" "requiresDatabase" "requiresFiletracker" "requires" "after" "serviceConfig" "environment" ]);
+            } // (builtins.removeAttrs x [ "name" "requiresDatabase" "requiresFiletracker" "requiresRabbitmq" "requires" "after" "serviceConfig" "environment" ]);
         in
         {
           # The sioworker service has to be modified this way so it has access to the shared filetracker cache.
@@ -420,6 +424,32 @@ in
               StateDirectory = "sio2";
               User = "sio2";
               Group = "sio2";
+            };
+          };
+
+          sio2-rabbitmq = {
+            enable = true;
+            description = "SIO2 rabbitmq setup";
+            after = [ "rabbitmq.service" ];
+            requires = [ "rabbitmq.service" ];
+
+            path = [ pkgs.rabbitmq-server ];
+
+            script = ''
+              function rmqctl() {
+                HOME=/tmp rabbitmqctl --erlang-cookie $(cat /var/lib/rabbitmq/.erlang.cookie) "$@"
+              }
+
+              if ! rmqctl list_users | grep oioioi; then
+                rmqctl add_user oioioi oioioi
+                rmqctl set_permissions oioioi '.*' '.*' '.*'
+              fi
+            '';
+
+            serviceConfig = {
+              Type = "simple";
+              ReadOnlyPaths = "/";
+              PrivateTmp = true;
             };
           };
 
