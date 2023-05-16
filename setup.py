@@ -22,6 +22,7 @@ if os.getuid() == 0:  # root
 requirements = [
     "Django>=3.2,<3.3",  # when upgrading, upgrade also django-two-factor-auth!
     "pytz",
+    "sqlalchemy<1.5",
     "beautifulsoup4",
     "PyYAML<5.5",
     "python-dateutil<2.9",

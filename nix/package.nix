@@ -31,6 +31,7 @@
 , supervisor
 
 , pytz
+, sqlalchemy
 , django
 , beautifulsoup4
 , pyyaml
@@ -485,6 +486,7 @@ buildPythonPackage rec {
   propagatedBuildInputs = [
     django
     pytz
+    sqlalchemy
     beautifulsoup4
     o-pyyaml
     python-dateutil
