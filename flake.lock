@@ -8,11 +8,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1679648217,
-        "narHash": "sha256-aq2J5Hj5IE8X8X/7v3n0wcv8n+FLzzENbcCF9xqhxAc=",
+        "lastModified": 1683579895,
+        "narHash": "sha256-bjcFOul4kiq/a+wpUQP3l0XRY1/burbPdvxxqmlZx30=",
         "owner": "erikarvstedt",
         "repo": "extra-container",
-        "rev": "40c73f5e3292e73d6ce91625d9751be84fde17cb",
+        "rev": "46d9d7afb3d3de822217cd6515c150decf05868f",
         "type": "github"
       },
       "original": {
@@ -29,11 +29,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1683564227,
-        "narHash": "sha256-T/s0hsmgzNE+1HH2VDBVoURMhWi4lbtSl6o3O2FGZNo=",
+        "lastModified": 1683569896,
+        "narHash": "sha256-akQlvjpk9ssa50DqG8n172CBVaLWSmX2dBfFUIxm1fE=",
         "owner": "Stowarzyszenie-Talent",
         "repo": "filetracker",
-        "rev": "bb93595884ffca5517f4bc40a3588764d666d195",
+        "rev": "ad4ea77d731ebf701a35f95f61ae18bfb9b5b58b",
         "type": "github"
       },
       "original": {
@@ -74,12 +74,15 @@
       }
     },
     "flake-utils_3": {
+      "inputs": {
+        "systems": "systems"
+      },
       "locked": {
-        "lastModified": 1678901627,
-        "narHash": "sha256-U02riOqrKKzwjsxc/400XnElV+UtPUQWpANPlyazjH0=",
+        "lastModified": 1681202837,
+        "narHash": "sha256-H+Rh19JDwRtpVPAWp64F+rlEtxUWBAQW28eAi3SRSzg=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "93a2b84fc4b70d9e089d029deacc3583435c2ed6",
+        "rev": "cfacdce06f30d2b68473a46042957675eebb3401",
         "type": "github"
       },
       "original": {
@@ -105,11 +108,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1680519927,
-        "narHash": "sha256-iYaec3MmYjduOoSxQoVspJS9JUhcTduREzsj+L+384g=",
+        "lastModified": 1684334906,
+        "narHash": "sha256-psIJn2MZRidtLb7XOX6u3W6+D4UgMR+f4zPtqYRXj8g=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "3cae095ff52fe4fa67879d307a75713451a4e195",
+        "rev": "bc5d9d7653c80878f9eb31634020c5c3f8906459",
         "type": "github"
       },
       "original": {
@@ -139,17 +142,32 @@
         ]
       },
       "locked": {
-        "lastModified": 1683565885,
-        "narHash": "sha256-+zENNdEKxU0oFn8YaKQWw5p8Bk1dnzXG40GJiEGL4ec=",
+        "lastModified": 1684349005,
+        "narHash": "sha256-EsEdhdg0FmKPxn4x6d+XGdMeajpHBN0SQECoM+Mk69o=",
         "owner": "Stowarzyszenie-Talent",
         "repo": "sioworkers",
-        "rev": "4379c4da56ec1a60f5941a3b20c6585c5faee4c8",
+        "rev": "b6cbceaff4052fadd6c3f7bcdf87c1bbbe7e648e",
         "type": "github"
       },
       "original": {
         "owner": "Stowarzyszenie-Talent",
         "ref": "nix-flake",
         "repo": "sioworkers",
+        "type": "github"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
         "type": "github"
       }
     }
