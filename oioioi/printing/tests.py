@@ -2,6 +2,7 @@ from django.core.files.base import ContentFile
 from django.test.utils import override_settings
 from django.urls import reverse
 from io import BytesIO
+import pytest
 
 from oioioi.base.tests import TestCase
 from oioioi.base.utils.pdf import extract_text_from_pdf
@@ -61,12 +62,14 @@ class TestPrintingView(TestCase):
         post_data = {'file': file}
         return self.client.post(self.url, post_data)
 
+    @pytest.mark.xfail(reason="On nixos the mimetypes db is incomplete")
     @override_settings(PRINTING_COMMAND=['grep', '%PDF-'])
     def test_print(self):
         response = self.print_file(SAMPLE_TEXT)
         self.assertContains(response, 'File has been printed.')
         # The assert above should fail if there is no "%PDF-" in generated file
 
+    @pytest.mark.xfail(reason="On nixos the mimetypes db is incomplete")
     @override_settings(PRINTING_MAX_FILE_SIZE=2048 * 100)
     def test_page_limit(self):
         response = self.print_file(SAMPLE_TEXT * 2)
