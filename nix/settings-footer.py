@@ -10,6 +10,11 @@ else:
     MIDDLEWARE.remove('debug_toolbar.middleware.DebugToolbarMiddleware')
 
 TEMPLATES[0]['APP_DIRS'] = False
+TEMPLATES[0]['OPTIONS']['context_processors'] += [
+    'oioioi.supervision.processors.supervision_processor',
+    'oioioi.notifications.processors.notification_processor',
+    'oioioi.globalmessage.processors.global_message_processor'
+]
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 from basic_settings import *
