@@ -15,6 +15,7 @@
 , vine
 , atomicwrites
 , django-appconf
+, django-statici18n
 , rcssmin
 , rjsmin
 , billiard
@@ -501,6 +502,7 @@ buildPythonPackage rec {
     coreapi
     o-dj-pagination
     o-django-compressor
+    django-statici18n
     pygments
     o-django-libsass
     o-django-debug-toolbar

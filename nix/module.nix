@@ -36,7 +36,6 @@ let
 
     INSTALLED_APPS = pythonExpression ''${toPythonValue { } [
       "oioioi.participants"
-      "oioioi.oi"
       "oioioi.testrun"
       "oioioi.scoresreveal"
       "oioioi.confirmations"
