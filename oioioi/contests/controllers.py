@@ -6,7 +6,7 @@ from django.contrib import auth
 from django.core.exceptions import PermissionDenied
 from django.core.mail import EmailMessage
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.safestring import mark_safe
@@ -21,7 +21,7 @@ from oioioi.base.utils import (
 from oioioi.base.utils.query_helpers import Q_always_true
 from oioioi.contests.models import (
     Contest,
-    ProblemStatementConfig,
+    ProblemInstance,
     RankingVisibilityConfig,
     Round,
     RoundTimeExtension,
@@ -35,6 +35,7 @@ from oioioi.contests.models import (
 )
 from oioioi.contests.utils import (
     generic_rounds_times,
+    get_contest_problem_statement_config,
     has_any_active_round,
     is_contest_basicadmin,
     is_contest_observer,
@@ -560,9 +561,9 @@ class ContestController(RegisteredSubclassesBase, ObjectWithMixins):
         context = self.make_context(request_or_context)
         if context.is_admin:
             return True
-        psc = ProblemStatementConfig.objects.filter(contest=context.contest)
-        if psc.exists() and psc[0].visible != 'AUTO':
-            return psc[0].visible == 'YES'
+        psc = get_contest_problem_statement_config(request_or_context)
+        if psc != None and psc.visible != 'AUTO':
+            return psc.visible == 'YES'
         else:
             return self.default_can_see_statement(request_or_context, problem_instance)
 
@@ -600,6 +601,11 @@ class ContestController(RegisteredSubclassesBase, ObjectWithMixins):
             return 'IGNORED'
         return 'NORMAL'
 
+    def get_submissions_count_expr(self, request, kind=None):
+        if kind is None:
+            kind = self.get_default_submission_kind(request)
+        return Count('submission', filter=Q(submission__user_id=request.user.id, submission__kind=kind))
+
     def get_submissions_limit(self, request, problem_instance, kind='NORMAL'):
         if is_contest_basicadmin(request):
             return None
@@ -607,21 +613,22 @@ class ContestController(RegisteredSubclassesBase, ObjectWithMixins):
             request, problem_instance, kind
         )
 
-    def get_submissions_left(self, request, problem_instance, kind=None):
-        # by default delegate to ProblemController
+    def get_submissions_left(self, request, problem_instance, kind=None, count=None):
         if kind is None:
             kind = self.get_default_submission_kind(request)
-        return problem_instance.problem.controller.get_submissions_left(
-            request, problem_instance, kind
-        )
+        limit = self.get_submissions_limit(request, problem_instance, kind)
+        if not limit or request.user.is_anonymous:
+            return None
+        if count is None:
+            count = ProblemInstance.objects.filter(id=problem_instance.id).annotate(
+                    cnt=self.get_submissions_count_expr(request, kind),
+                ).first().cnt
+        return max(limit - count, 0)
 
-    def is_submissions_limit_exceeded(self, request, problem_instance, kind=None):
-        # by default delegate to ProblemController
+    def is_submissions_limit_exceeded(self, request, problem_instance, kind=None, count=None):
         if kind is None:
             kind = self.get_default_submission_kind(request)
-        return problem_instance.problem.controller.is_submissions_limit_exceeded(
-            request, problem_instance, kind
-        )
+        return self.get_submissions_left(request, problem_instance, kind, count) == 0
 
     def adjust_submission_form(self, request, form, problem_instance):
         # by default delegate to ProblemController
