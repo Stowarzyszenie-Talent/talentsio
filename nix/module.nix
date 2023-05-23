@@ -1,4 +1,4 @@
-{ pkgs, lib, config, ... }:
+{ pkgs, lib, config }:
 
 with (import ./lib { inherit lib; });
 let
@@ -322,6 +322,7 @@ in
         ];
       };
 
+      # FIXME: This should be disabled if rabbitmqUrl is changed from the default
       services.rabbitmq = {
         enable = true;
       };

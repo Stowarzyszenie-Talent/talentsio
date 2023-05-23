@@ -17,34 +17,44 @@
   };
 
   outputs = { self, nixpkgs, flake-utils, filetracker, sioworkers, extra-container }:
-    let overlays = [
-      # HACK: This seems broken in this version of nixpkgs
-      (final: prev: {
-        pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-          (python-final: python-prev: {
-            # of course this is broken in nixpkgs...
-            jsonschema = python-prev.jsonschema.overrideAttrs
-              (old: {
-                propagatedBuildInputs = old.propagatedBuildInputs ++ [
-                  (python-prev.buildPythonPackage rec {
-                    pname = "pkgutil-resolve-name";
-                    version = "1.3.10";
+    let
+      overlays = [
+        # HACK: This seems broken in this version of nixpkgs
+        (final: prev: {
+          pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+            (python-final: python-prev: {
+              # of course this is broken in nixpkgs...
+              jsonschema = python-prev.jsonschema.overrideAttrs
+                (old: {
+                  propagatedBuildInputs = old.propagatedBuildInputs ++ [
+                    (python-prev.buildPythonPackage rec {
+                      pname = "pkgutil-resolve-name";
+                      version = "1.3.10";
 
-                    src = python-prev.fetchPypi {
-                      pname = "pkgutil_resolve_name";
-                      inherit version;
-                      hash = "sha256-NX1snmp1VlPP14iTgXwIU682XdUeyX89NYqBk3O70XQ=";
-                    };
-                  })
-                ];
-              });
-          })
-        ];
-      })
+                      src = python-prev.fetchPypi {
+                        pname = "pkgutil_resolve_name";
+                        inherit version;
+                        hash = "sha256-NX1snmp1VlPP14iTgXwIU682XdUeyX89NYqBk3O70XQ=";
+                      };
+                    })
+                  ];
+                });
+            })
+          ];
+        })
 
-      sioworkers.overlays.default
-      filetracker.overlays.default
-    ]; in
+        sioworkers.overlays.default
+        filetracker.overlays.default
+      ];
+
+      module = { pkgs, lib, config, ... }: import ./nix/module.nix {
+        # Use our version of nixpkgs so that the module works consistently across different nixpkgs versions
+        pkgs = import nixpkgs {
+          inherit (pkgs) system; inherit overlays;
+        };
+        inherit lib config;
+      };
+    in
     {
       lib = import ./nix/lib { inherit (nixpkgs) lib; };
       nixosModules.default = {
@@ -53,7 +63,7 @@
         imports = [
           filetracker.nixosModules.default
           sioworkers.nixosModules.default
-          ./nix/module.nix
+          module
         ];
       };
     } // (flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
