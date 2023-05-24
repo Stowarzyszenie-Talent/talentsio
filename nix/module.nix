@@ -17,6 +17,7 @@ let
     DISABLE_QUIZZES = false;
     PROBLEM_STATISTICS_AVAILABLE = true;
     CONTEST_MODE = pythonExpression ''ContestMode.neutral'';
+    REGISTRATION_RULES_CONSENT = pythonExpression ''_("talent terms accepted")'';
 
     # SERVER is managed by a more high level module below, same with DATABASES
 
