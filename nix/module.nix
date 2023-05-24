@@ -3,6 +3,8 @@
 with (import ./lib { inherit lib; });
 let
   cfg = config.services.oioioi;
+  # The string "s" if cfg.useSSL is true, "" otherwise
+  sIfSSL = if cfg.useSSL then "s" else "";
   baseSettings = {
     # TODO: How do we handle updating this?
     CONFIG_VERSION = 49;
@@ -10,7 +12,7 @@ let
 
     SITE_NAME = "OIOIOI";
     SITE_ID = 1;
-    PUBLIC_ROOT_URL = "https://${cfg.domain}";
+    PUBLIC_ROOT_URL = "http${sIfSSL}://${cfg.domain}";
 
     DISABLE_QUIZZES = false;
     PROBLEM_STATISTICS_AVAILABLE = true;
@@ -33,7 +35,7 @@ let
     FILETRACKER_CACHE_ROOT = "/var/cache/sio2-filetracker-cache";
 
     NOTIFICATIONS_SERVER_ENABLED = true;
-    NOTIFICATIONS_SERVER_URL = "http://${cfg.domain}/";
+    NOTIFICATIONS_SERVER_URL = "http${sIfSSL}://${cfg.domain}/";
 
     INSTALLED_APPS = pythonExpression ''${toPythonValue { } [
       "oioioi.participants"
@@ -141,6 +143,15 @@ in
       '';
       # FIXME: Typecheck this
       type = lib.types.nullOr lib.types.attrs;
+    };
+
+    useSSL = lib.mkOption {
+      default = false;
+      description = lib.mdDoc ''
+        Enable SSL in nginx and some oioioi components.
+
+        For this to work SSL has to be set up properly in nginx.
+      '';
     };
 
     rabbitmqUrl = lib.mkOption {
@@ -266,7 +277,7 @@ in
         if cfg.nginx != null then {
           enable = lib.mkDefault true;
           virtualHosts."oioioi" = {
-            forceSSL = true;
+            forceSSL = cfg.useSSL;
           } // cfg.nginx // {
             serverName = cfg.domain;
 
@@ -503,7 +514,7 @@ in
 
             serviceConfig = {
               ExecStart = ''
-                ${notificationsServer}/bin/notifications-server --port 7887 --amqp ${lib.escapeShellArg cfg.rabbitmqUrl} --url http://localhost:80/
+                ${notificationsServer}/bin/notifications-server --port 7887 --amqp ${lib.escapeShellArg cfg.rabbitmqUrl} --url http${sIfSSL}://localhost/
               '';
             };
           };
