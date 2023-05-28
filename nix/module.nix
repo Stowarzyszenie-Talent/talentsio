@@ -176,6 +176,18 @@ in
       type = lib.types.bool;
     };
 
+    uwsgi = lib.mkOption {
+      default = { };
+      description = "uwsgi settings";
+      type = mkOptionSubmodule {
+        concurrency = lib.mkOption {
+          default = "auto";
+          description = "The number of uwsgi processes to spawn";
+          type = with lib.types; oneOf [ (strMatching "auto") ints.positive ];
+        };
+      };
+    };
+
     unpackmgr = lib.mkOption {
       default = { };
       description = "unpackmgr settings";
@@ -394,6 +406,14 @@ in
         "A /var/cache/sio2-filetracker-cache - - - - u::rwx,d:g::rwx,o::---"
       ];
 
+      systemd.targets = {
+        oioioi = {
+          enable = true;
+          wantedBy = [ "multi-user.target" ];
+          description = "all OIOIOI services (grouped)";
+        };
+      };
+
       systemd.services =
         let
           mkSioProcess = { name, requiresDatabase, requiresFiletracker, requiresRabbitmq ? requiresFiletracker, ... }@x:
@@ -403,6 +423,8 @@ in
               enable = true;
               description = "${name}, a part of SIO2";
               requires = (x.requires or [ ]) ++ extraRequires;
+              bindsTo = [ "oioioi.target" ] ++ (x.bindsTo or []);
+              wantedBy = [ "oioioi.target" ] ++ (x.wantedBy or []);
               after = (x.wants or [ ]) ++ (x.requires or [ ]) ++ (x.after or [ ]) ++ extraRequires;
 
               environment = {
@@ -508,7 +530,6 @@ in
             requiresFiletracker = true;
             requiresDatabase = true;
 
-            wantedBy = [ "multi-user.target" ];
             wants = [
               "rankingsd.service"
               "mailnotifyd.service"
@@ -522,16 +543,22 @@ in
             # These units all have to be in the same namespace due to celery requiring a shared /tmp.
             unitConfig.JoinsNamespaceOf = [ "evalmgr.service" "unpackmgr.service" "receive_from_workers.service" ];
 
+            script = ''
+              exec ${uwsgi}/bin/uwsgi --plugin ${uwsgi}/lib/uwsgi/python3_plugin.so \
+              -s /var/run/sio2/uwsgi.sock --umask=000 \
+              --processes=${if cfg.uwsgi.concurrency == "auto" then "$(nproc)" else builtins.toString cfg.uwsgi.concurrency} \
+              -M --max-requests=5000 --disable-logging --need-app \
+              --enable-threads --socket-timeout=30 --ignore-sigpipe \
+              --ignore-write-errors --disable-write-exception --wsgi-file=${wsgiPy}
+            '';
+
             serviceConfig = {
               ReadWritePaths = [ "/dev/shm" ];
               ExecStartPre = [
                 "${managePy}/bin/sio-manage collectstatic --no-input"
                 "${managePy}/bin/sio-manage compress --force"
+                "${managePy}/bin/sio-manage compilejsi18n"
               ];
-              ExecStart = ''
-                ${uwsgi}/bin/uwsgi --plugin ${uwsgi}/lib/uwsgi/python3_plugin.so -s /var/run/sio2/uwsgi.sock --umask=000 --processes=10 -M --max-requests=5000 --disable-logging --need-app --enable-threads --socket-timeout=30 --ignore-sigpipe --ignore-write-errors --disable-write-exception --wsgi-file=${wsgiPy}
-              '';
-
               KillSignal = "SIGINT";
 
               RuntimeDirectory = "sio2";
