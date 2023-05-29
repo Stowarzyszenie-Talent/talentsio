@@ -265,7 +265,7 @@ in
         # flake8: noqa
         import sys
         import os
-        sys.path += ${toPythonValue {} (lib.splitString ":" PYTHONPATH)}
+        sys.path = ${toPythonValue {} (lib.splitString ":" PYTHONPATH)} + sys.path
         os.environ["DJANGO_SETTINGS_MODULE"] = ${toPythonValue {} DJANGO_SETTINGS_MODULE}
 
         ${script}
