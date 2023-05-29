@@ -281,6 +281,34 @@ in
       wsgiPy = writePythonSio "wsgi.py" ''
         from django.core.wsgi import get_wsgi_application
         application = get_wsgi_application()
+        import io
+        input = io.StringIO()
+        errors = io.StringIO()
+        def noop(status, hh, exc_info=None):
+            pass
+        application({
+        'CONTENT_LENGTH': '0',
+        'CONTENT_TYPE': 'application/octet-stream',
+        'DOCUMENT_ROOT': '/api/ping',
+        'HTTP_HOST': 'example.com',
+        'PATH_INFO': '/api/ping',
+        'REMOTE_ADDR': '127.0.0.1',
+        'REMOTE_PORT': '65420',
+        'REQUEST_METHOD': 'GET',
+        'REQUEST_URI': '/api/ping',
+        'SERVER_NAME': 'example.com',
+        'SERVER_PORT': '80',
+        'SERVER_PROTOCOL': 'HTTP/1.1',
+        'uwsgi.node': 'itchy',
+        'uwsgi.version': '1.0-dev',
+        'wsgi.multiprocess': True,
+        'wsgi.multithread': False,
+        'wsgi.run_once': False,
+        'wsgi.url_scheme': 'http',
+        'wsgi.version': (1, 0),
+        'wsgi.input': input,
+        'wsgi.errors': errors,
+        }, noop)
       '';
       notificationsServer = pkgs.callPackage ./notifications-server { };
     in
@@ -305,10 +333,6 @@ in
         "/sandboxes/proot-sandbox_amd64.tar.gz" = pkgs.fetchurl {
           url = "https://downloads.sio2project.mimuw.edu.pl/sandboxes/proot-sandbox_amd64.tar.gz";
           hash = "sha256-u6CSak326pAa7amYqYuHIqFu1VppItOXjFyFZgpf39w=";
-        };
-        "/sandboxes/sio2jail_exec-sandbox-1.4.2.tar.gz" = pkgs.fetchurl {
-          url = "https://downloads.sio2project.mimuw.edu.pl/sandboxes/sio2jail_exec-sandbox-1.4.2.tar.gz";
-          hash = "sha256-B3gtNatgcl+sx2ok3uXfWDt1gnSQptWrGEZdwmOUn20=";
         };
         "/sandboxes/talent_sio2jail_exec-sandbox-1.4.3.tar.gz" = pkgs.fetchurl {
           url = "https://otsrv.net/sandboxes/talent_sio2jail_exec-sandbox-1.4.3.tar.gz";
@@ -388,12 +412,18 @@ in
         enable = true;
       };
 
-      system.activationScripts.copy-sio2-etc-defaults = ''
-        if [[ ! -e /etc/sio2 ]]; then
-          mkdir -m=775 -p /etc/sio2
-          cp --no-preserve=all ${../oioioi/deployment/basic_settings.py.template} /etc/sio2/basic_settings.py
-        fi
-      '';
+      system.activationScripts = {
+        copy-sio2-etc-defaults = ''
+          if [[ ! -e /etc/sio2 ]]; then
+            mkdir -m=775 -p /etc/sio2
+            cp --no-preserve=all ${../oioioi/deployment/basic_settings.py.template} /etc/sio2/basic_settings.py
+          fi
+        '';
+        oioioi-create-symlink = ''
+          [ -d /var/run/sio2 ] || mkdir /var/run/sio2
+          ln -sf ${wsgiPy} /var/run/sio2/wsgi.py
+        '';
+      };
 
       services.sioworkersd.enable = true;
 
@@ -524,11 +554,14 @@ in
             };
           };
 
-          sio2-uwsgi = mkSioProcess {
+          sio2-uwsgi = mkSioProcess rec {
             name = "uwsgi";
 
             requiresFiletracker = true;
             requiresDatabase = true;
+
+            restartTriggers = [ script ];
+            reloadIfChanged = true;
 
             wants = [
               "rankingsd.service"
@@ -545,13 +578,20 @@ in
 
             script = ''
               exec ${uwsgi}/bin/uwsgi --plugin ${uwsgi}/lib/uwsgi/python3_plugin.so \
-              -s /var/run/sio2/uwsgi.sock --umask=000 \
+              -s /var/run/sio2/uwsgi.sock --umask=000 --master-fifo /var/run/sio2/uwsgi.fifo \
               --processes=${if cfg.uwsgi.concurrency == "auto" then "$(nproc)" else builtins.toString cfg.uwsgi.concurrency} \
-              -M --max-requests=5000 --disable-logging --need-app \
+              --lazy-apps -M --max-requests=5000 --disable-logging --need-app \
               --enable-threads --socket-timeout=30 --ignore-sigpipe \
-              --ignore-write-errors --disable-write-exception --wsgi-file=${wsgiPy}
+              --ignore-write-errors --disable-write-exception \
+              --wsgi-file=/var/run/sio2/wsgi.py
             '';
 
+            reload = ''
+              ${managePy}/bin/sio-manage collectstatic --no-input
+              ${managePy}/bin/sio-manage compress --force
+              ${managePy}/bin/sio-manage compilejsi18n
+              echo c > /var/run/sio2/uwsgi.fifo
+            '';
             serviceConfig = {
               ReadWritePaths = [ "/dev/shm" ];
               ExecStartPre = [
@@ -566,12 +606,14 @@ in
             };
           };
 
-          notifications-server = mkSioProcess {
+          notifications-server = mkSioProcess rec {
             name = "notifications-server";
 
             requiresFiletracker = false;
             requiresDatabase = false;
             requiresRabbitmq = true;
+            restartTriggers = [ serviceConfig.ExecStart ];
+            restartIfChanged = false;
 
             serviceConfig = {
               ExecStart = ''
@@ -584,7 +626,7 @@ in
             name = "rankingsd";
 
             requiresFiletracker = false;
-            requiresDatabase = false;
+            requiresDatabase = true;
 
             serviceConfig = {
               ExecStart = ''
@@ -599,7 +641,7 @@ in
             name = "mailnotifyd";
 
             requiresFiletracker = false;
-            requiresDatabase = false;
+            requiresDatabase = true;
 
             serviceConfig = {
               ExecStart = ''
@@ -648,7 +690,7 @@ in
             name = "receive_from_workers";
 
             requiresFiletracker = false;
-            requiresDatabase = false;
+            requiresDatabase = true;
 
             unitConfig.JoinsNamespaceOf = [ "sio2-uwsgi.service" "unpackmgr.service" "evalmgr.service" ];
 
