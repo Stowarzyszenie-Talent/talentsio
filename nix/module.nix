@@ -453,9 +453,11 @@ in
               enable = true;
               description = "${name}, a part of SIO2";
               requires = (x.requires or [ ]) ++ extraRequires;
+              # With both bindsTo and after, "the unit bound to strictly has to be in active state
+              # for this unit to also be in active state.", according to systemd.unit(5).
               bindsTo = [ "oioioi.target" ] ++ (x.bindsTo or []);
-              wantedBy = [ "oioioi.target" ] ++ (x.wantedBy or []);
-              after = (x.wants or [ ]) ++ (x.requires or [ ]) ++ (x.after or [ ]) ++ extraRequires;
+              wantedBy = x.wantedBy or [];
+              after = [ "oioioi.target"] ++ (x.wants or [ ]) ++ (x.requires or [ ]) ++ (x.after or [ ]) ++ extraRequires;
 
               environment = {
                 # This is required for services that don't go through manage.py
