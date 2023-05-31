@@ -482,6 +482,10 @@ buildPythonPackage rec {
   doCheck = false;
   dontStrip = true;
 
+  # An env var for running tests. It isn't needed in module.nix,
+  # as there we don't use the local sioworkers backend.
+  SIOWORKERS_SANDBOXES_URL = "https://otsrv.net/sandboxes/";
+
   # This is just so pytest is available in nix shell and can be manually run.
   nativeBuildInputs = [ o-pytest pkgs.texlive.combined.scheme-full ];
 
