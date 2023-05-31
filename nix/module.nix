@@ -420,8 +420,8 @@ in
           fi
         '';
         oioioi-create-symlink = ''
-          [ -d /var/run/sio2 ] || mkdir /var/run/sio2
-          ln -sf ${wsgiPy} /var/run/sio2/wsgi.py
+          [ -d /var/run/sio2 ] || mkdir /var/run/sio2 || exit 1
+          ln -sf ${wsgiPy} /var/run/sio2/wsgi.py || exit 1
         '';
       };
 
@@ -455,8 +455,8 @@ in
               requires = (x.requires or [ ]) ++ extraRequires;
               # With both bindsTo and after, "the unit bound to strictly has to be in active state
               # for this unit to also be in active state.", according to systemd.unit(5).
-              bindsTo = [ "oioioi.target" ] ++ (x.bindsTo or []);
-              wantedBy = x.wantedBy or [];
+              partOf = [ "oioioi.target" ];
+              wantedBy =[ "oioioi.target" ] ++ (x.wantedBy or []);
               after = [ "oioioi.target"] ++ (x.wants or [ ]) ++ (x.requires or [ ]) ++ (x.after or [ ]) ++ extraRequires;
 
               environment = {
