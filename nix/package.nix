@@ -483,11 +483,11 @@ buildPythonPackage rec {
   dontStrip = true;
 
   # This is just so pytest is available in nix shell and can be manually run.
-  nativeBuildInputs = [ o-pytest ];
+  nativeBuildInputs = [ o-pytest pkgs.texlive.combined.scheme-full ];
 
   # This is only required so that tests can be run from a devshell.
   # TODO: Add texlive to oioioi services in module.nix
-  buildInputs = with pkgs; [ gcc glibc.static fpc (texlive.combine { inherit (texlive) scheme-small collection-langpolish pst-barcode; }) ];
+  buildInputs = with pkgs; [ gcc glibc.static fpc texlive.combined.scheme-full ];
 
   propagatedBuildInputs = [
     django

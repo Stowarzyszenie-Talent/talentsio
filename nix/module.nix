@@ -170,7 +170,7 @@ in
       type = lib.types.str;
     };
 
-    filetrackerDefaultEnsureFiles = lib.mkOption {
+    defaultFiletrackerEnsureFiles = lib.mkOption {
       default = true;
       description = "Fill services.filetracker.ensureFiles with sensible defaults for sio2";
       type = lib.types.bool;
@@ -317,7 +317,7 @@ in
         isSystemUser = true;
         group = "sio2";
       };
-      services.filetracker.ensureFiles = lib.mkIf cfg.filetrackerDefaultEnsureFiles {
+      services.filetracker.ensureFiles = lib.mkIf cfg.defaultFiletrackerEnsureFiles {
         "/sandboxes/compiler-gcc.10_2_1.tar.gz" = pkgs.fetchurl {
           url = "https://downloads.sio2project.mimuw.edu.pl/sandboxes/compiler-gcc.10_2_1.tar.gz";
           hash = "sha256-+QO7/ZqLWRvFCF9KdVqrZ6ZsBB96bkRgYVUUezvAf8A=";
