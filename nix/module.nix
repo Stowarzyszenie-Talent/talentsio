@@ -664,7 +664,7 @@ in
 
             serviceConfig = {
               ExecStart = ''
-                ${celery}/bin/celery -A oioioi.celery worker -E -l info -Q unpackmgr -c ${builtins.toString cfg.unpackmgr.concurrency}
+                ${celery}/bin/celery -A oioioi.celery worker -n "%%h-unpackmgr" -E -Q unpackmgr -c ${builtins.toString cfg.unpackmgr.concurrency}
               '';
 
               StateDirectory = "sio2";
@@ -681,7 +681,7 @@ in
 
             serviceConfig = {
               ExecStart = ''
-                ${celery}/bin/celery -A oioioi.celery worker -E -l info -Q evalmgr -c ${builtins.toString cfg.evalmgr.concurrency}
+                ${celery}/bin/celery -A oioioi.celery worker -n "%%h-evalmgr" -E -Q evalmgr -c ${builtins.toString cfg.evalmgr.concurrency}
               '';
 
               StateDirectory = "sio2";
