@@ -27,11 +27,16 @@ server {
     location __STATIC_URL__ {
         #limit_req zone=static burst=40 delay=20;
         alias __STATIC_ROOT__/;
+        gzip on;
         gzip_vary on;
         gzip_min_length 1024;
         gzip_proxied expired no-cache no-store private auth;
         gzip_types text/plain text/css application/javascript text/javascript;
         expires 1d;
+        location __STATIC_URL__/CACHE/ {
+            gzip_static on;
+            expires 1y;
+        }
     }
 
     location /socket.io/ {

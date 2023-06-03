@@ -351,6 +351,14 @@ in
           } // cfg.nginx // {
             serverName = cfg.domain;
 
+            locations."/static/CACHE/" = {
+              alias = "/var/lib/sio2/static/CACHE/";
+              extraConfig = ''
+                gzip_static on;
+                expires 1y;
+              '';
+            };
+
             locations."/static/" = {
               alias = "/var/lib/sio2/static/";
               extraConfig = ''
@@ -371,12 +379,6 @@ in
             '';
 
             locations."/".extraConfig = ''
-              uwsgi_pass unix:///var/run/sio2/uwsgi.sock;
-              include ${pkgs.nginx}/conf/uwsgi_params;
-              uwsgi_read_timeout 1800;
-            '';
-
-            locations."~ ^/(jsi18n/|c/[a-z0-9_-]+/(status/|admin/|p/[a-z0-9_-]+/$))".extraConfig = ''
               uwsgi_pass unix:///var/run/sio2/uwsgi.sock;
               include ${pkgs.nginx}/conf/uwsgi_params;
               uwsgi_read_timeout 1800;
