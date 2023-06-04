@@ -29,16 +29,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1685551634,
-        "narHash": "sha256-Co8rhEDkCizoYLXKjiwtFcR7Au1aVE1QwAv5xaaHRkE=",
+        "lastModified": 1685816707,
+        "narHash": "sha256-rvcjyhVXvtnLpLS4k7UJGNQPLrzLAFWfICfTofRXIJw=",
         "owner": "Stowarzyszenie-Talent",
         "repo": "filetracker",
-        "rev": "d658f0263d4b04ef5b45e355ab6403b66daf72b1",
+        "rev": "62dad844ffd632fa4008e9574dfcef6f308611a7",
         "type": "github"
       },
       "original": {
         "owner": "Stowarzyszenie-Talent",
-        "ref": "nix",
         "repo": "filetracker",
         "type": "github"
       }
@@ -142,16 +141,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1685306170,
-        "narHash": "sha256-gxIX+N0h/eMvaoq4BQPCD7JIOcLROckA3D2dDup8ePM=",
+        "lastModified": 1685817309,
+        "narHash": "sha256-aHGzMCSIU9JTl55hRB7T0svIIcUAvJ19INbMUjgh8/k=",
         "owner": "Stowarzyszenie-Talent",
         "repo": "sioworkers",
-        "rev": "cb830abfc4840e68bd6a32a3bef5dcdf02fe55cb",
+        "rev": "78d77cb81c6ded000d55bca4ddb8c4fff964974e",
         "type": "github"
       },
       "original": {
         "owner": "Stowarzyszenie-Talent",
-        "ref": "nix-flake",
         "repo": "sioworkers",
         "type": "github"
       }

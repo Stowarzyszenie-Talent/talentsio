@@ -3,11 +3,11 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/release-22.11";
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.filetracker = {
-    url = "github:Stowarzyszenie-Talent/filetracker/nix";
+    url = "github:Stowarzyszenie-Talent/filetracker";
     inputs.nixpkgs.follows = "nixpkgs";
   };
   inputs.sioworkers = {
-    url = "github:Stowarzyszenie-Talent/sioworkers/nix-flake";
+    url = "github:Stowarzyszenie-Talent/sioworkers";
     inputs.nixpkgs.follows = "nixpkgs";
     inputs.filetracker.follows = "filetracker";
   };
