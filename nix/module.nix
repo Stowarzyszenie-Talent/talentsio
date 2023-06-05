@@ -448,8 +448,8 @@ in
 
       systemd.services =
         let
-          mkSioProcess = { name, requiresDatabase, requiresFiletracker, requiresRabbitmq ? requiresFiletracker, ... }@x:
-            let extraRequires = (lib.optionals requiresDatabase [ "postgresql.service" "sio2-migrate.service" ]) ++ (lib.optional requiresFiletracker "filetracker.service") ++ (lib.optional requiresRabbitmq "sio2-rabbitmq.service");
+          mkSioProcess = { name, requiresDatabase ? false, requiresFiletracker ? false, ... }@x:
+            let extraRequires = (lib.optionals requiresDatabase [ "postgresql.service" "sio2-migrate.service" ]) ++ (lib.optional requiresFiletracker "filetracker.service") ++ [ "sio2-rabbitmq.service" ];
             in
             {
               enable = true;
@@ -488,7 +488,7 @@ in
                 ProtectKernelLogs = true;
                 PrivateDevices = true;
               } // (builtins.removeAttrs (x.serviceConfig or { }) [ "ReadWritePaths" "SupplementaryGroups" ]);
-            } // (builtins.removeAttrs x [ "name" "requiresDatabase" "requiresFiletracker" "requiresRabbitmq" "requires" "after" "serviceConfig" "environment" ]);
+            } // (builtins.removeAttrs x [ "name" "requiresDatabase" "requiresFiletracker" "requires" "after" "serviceConfig" "environment" ]);
         in
         {
           # The sioworker service has to be modified this way so it has access to the shared filetracker cache.
@@ -560,7 +560,6 @@ in
 
           sio2-uwsgi = mkSioProcess rec {
             name = "uwsgi";
-
             requiresFiletracker = true;
             requiresDatabase = true;
 
@@ -613,23 +612,15 @@ in
           notifications-server = mkSioProcess rec {
             name = "notifications-server";
 
-            requiresFiletracker = false;
-            requiresDatabase = false;
-            requiresRabbitmq = true;
-            restartTriggers = [ serviceConfig.ExecStart ];
-            restartIfChanged = false;
-
             serviceConfig = {
               ExecStart = ''
-                ${notificationsServer}/bin/notifications-server --port 7887 --amqp ${lib.escapeShellArg cfg.rabbitmqUrl} --url http${sIfSSL}://localhost/
+                ${notificationsServer}/bin/notifications-server --port 7887 --amqp ${lib.escapeShellArg cfg.rabbitmqUrl} --url ${finalSimpleSettings.NOTIFICATIONS_SERVER_URL}
               '';
             };
           };
 
           rankingsd = mkSioProcess {
             name = "rankingsd";
-
-            requiresFiletracker = false;
             requiresDatabase = true;
 
             serviceConfig = {
@@ -643,8 +634,6 @@ in
 
           mailnotifyd = mkSioProcess {
             name = "mailnotifyd";
-
-            requiresFiletracker = false;
             requiresDatabase = true;
 
             serviceConfig = {
@@ -658,7 +647,6 @@ in
 
           unpackmgr = mkSioProcess {
             name = "unpackmgr";
-
             requiresFiletracker = true;
             requiresDatabase = true;
 
@@ -675,7 +663,6 @@ in
 
           evalmgr = mkSioProcess {
             name = "evalmgr";
-
             requiresFiletracker = true;
             requiresDatabase = true;
 
@@ -692,8 +679,6 @@ in
 
           receive_from_workers = mkSioProcess {
             name = "receive_from_workers";
-
-            requiresFiletracker = false;
             requiresDatabase = true;
 
             unitConfig.JoinsNamespaceOf = [ "sio2-uwsgi.service" "unpackmgr.service" "evalmgr.service" ];
