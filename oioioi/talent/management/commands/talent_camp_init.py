@@ -67,14 +67,17 @@ class Command(BaseCommand):
                     round_start = cday + settings.TALENT_CONTEST_START[i]
                     round_end = cday + settings.TALENT_CONTEST_END[i]
                     round_results = cday + settings.TALENT_CONTEST_RESULTS[i]
-                    Round.objects.get_or_create(
+                    Round.objects.update_or_create(
                         contest=contest,
                         name=name,
-                        start_date=round_start,
-                        end_date=round_end,
-                        results_date=round_results,
+                        defaults={
+                            "start_date": round_start,
+                            "end_date": round_end,
+                            "results_date": round_results,
+                        }
                     )
             # Trial contest & round (it's last to become the default contest)
+            # We do not update the values so as not to overwrite manual and temporary changes
             contest, _ = Contest.objects.get_or_create(
                 id="p",
                 name="Kontest próbny",
@@ -83,42 +86,55 @@ class Command(BaseCommand):
             Round.objects.get_or_create(
                 contest=contest,
                 name="Runda próbna",
-                start_date=today,
-                results_date=today,
+                defaults={
+                    "start_date": today,
+                    "results_date": today,
+                }
             )
             DashboardMessage.objects.get_or_create(
-                contest=Contest.objects.get(id="p"), content=settings.TALENT_DASHBOARD_MESSAGE
+                contest=contest,
+                defaults={
+                    "content": settings.TALENT_DASHBOARD_MESSAGE,
+                }
             )
             # Supervision groups
             for i in settings.TALENT_SUPERVISED_IDS:
                 group, _ = Group.objects.get_or_create(name=contest_names[i])
                 # Supervisions
                 for r in Round.objects.filter(contest_id=i):
-                    Supervision.objects.get_or_create(
+                    Supervision.objects.update_or_create(
                         group=group,
                         round=r,
-                        start_date=r.start_date,
-                        end_date=r.end_date,
+                        defaults={
+                            "start_date": r.start_date,
+                            "end_date": r.end_date,
+                        }
                     )
             # Phases
             for r in Round.objects.filter(contest_id__in=settings.TALENT_PHASED_IDS):
-                Phase.objects.get_or_create(
+                Phase.objects.update_or_create(
                     round=r,
-                    start_date=r.end_date,
                     multiplier=settings.TALENT_SCORE1,
+                    defaults={
+                        "start_date": r.end_date,
+                    }
                 )
-                Phase.objects.get_or_create(
+                Phase.objects.update_or_create(
                     round=r,
-                    start_date=r.start_date \
+                    multiplier=settings.TALENT_SCORE2,
+                    defaults={
+                        "start_date": r.start_date \
                             - settings.TALENT_CONTEST_START[r.contest_id] \
                             + settings.TALENT_PHASE2_END,
-                    multiplier=settings.TALENT_SCORE2,
+                    }
                 )
             # Default score reveal configs
             for id,limit in settings.TALENT_DEFAULT_SCOREREVEALS.items():
-                ScoreRevealContestConfig.objects.get_or_create(
+                ScoreRevealContestConfig.objects.update_or_create(
                     contest=Contest.objects.get(id=id),
-                    reveal_limit=limit,
+                    defaults={
+                        "reveal_limit": limit,
+                    }
                 )
             # Notified-about-new-questions configs
             for login, contestids in settings.TALENT_MAIL_NOTIFICATIONS.items():
