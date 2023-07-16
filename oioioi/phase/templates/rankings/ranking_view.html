@@ -1,0 +1,34 @@
+{% extends "rankings/ranking_view.html" %}
+{% load i18n %}
+{% block header %}
+    {% trans "Ranking" %}
+    {% if phase_ranking_type_name %}
+        - {{phase_ranking_type_name|lower}}
+    {% endif %}
+{% endblock %}
+{% block buttons %}
+    {{ block.super }}
+    {% if is_phased %}
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                    data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                {% trans "Change ranking type" %}
+            </button>
+            {% with rc=request.contest.controller.ranking_controller %}
+            <div class="dropdown-menu">
+                {% for type, name in rc.TYPE_NAMES.items %}
+                    <a class="dropdown-item" href="#"
+                    data-post-url="{% url 'change_phase_ranking_type' key=key rtype=type %}">
+                        {{ name }}
+                        {% if phase_ranking_type == type %}
+                            <i class="fa-solid fa-circle-check"></i>
+                        {% endif %}
+                    </a>
+                {% endfor %}
+            </div>
+            {% endwith %}
+        </div>
+    {% endif %}
+{% endblock %}

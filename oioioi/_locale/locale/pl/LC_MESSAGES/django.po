@@ -9721,6 +9721,18 @@ msgstr "fazy"
 msgid "phase multiplier"
 msgstr "mnożnik fazy"
 
+msgid "Change ranking type"
+msgstr "Zmień typ rankingu"
+
+msgid "Default"
+msgstr "Domyślny"
+
+msgid "First phase only"
+msgstr "Tylko pierwsza faza"
+
+msgid "Without multipliers"
+msgstr "Bez mnożników"
+
 #: TALENT
 msgid "Talent open contest"
 msgstr "Konkurs Talentu (otwarty)"

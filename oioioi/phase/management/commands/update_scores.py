@@ -1,10 +1,9 @@
-import six
-
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from oioioi.contests.models import Contest, ProblemInstance, UserResultForProblem
 from oioioi.rankings.models import Ranking
+
 
 def updateContest(id, verbose):
     print("--- Recalculating scores in contest " + id + "\n")

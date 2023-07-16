@@ -403,6 +403,15 @@ class DefaultRankingController(RankingController):
         now = timezone.now()
         return [(pi, self._is_problem_statement_visible(key, pi, now)) for pi in pis]
 
+    def _get_results_qs_for_serialization(self, key):
+        return UserResultForProblem.objects.all().prefetch_related(
+            'problem_instance__round',
+        ).select_related(
+            'submission_report',
+            'problem_instance',
+            'problem_instance__contest',
+        )
+
     def serialize_ranking(self, key):
         partial_key = self.get_partial_key(key)
         rounds = list(self._rounds_for_key(key))
@@ -414,14 +423,8 @@ class DefaultRankingController(RankingController):
             .prefetch_related('round')
         )
         users = self.filter_users_for_ranking(key, User.objects.all()).distinct()
-        results = (
-            UserResultForProblem.objects.filter(
-                problem_instance__in=pis, user__in=users
-            )
-            .prefetch_related('problem_instance__round')
-            .select_related(
-                'submission_report', 'problem_instance', 'problem_instance__contest'
-            )
+        results = self._get_results_qs_for_serialization(key).filter(
+            problem_instance__in=pis, user__in=users
         )
 
         data = self._get_users_results(pis, results, rounds, users)

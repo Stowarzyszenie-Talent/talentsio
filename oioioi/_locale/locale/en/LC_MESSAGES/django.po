@@ -8347,6 +8347,18 @@ msgstr "phases"
 msgid "phase multiplier"
 msgstr "phase multiplier"
 
+msgid "Change ranking type"
+msgstr "Change ranking type"
+
+msgid "Default"
+msgstr "Default"
+
+msgid "First phase only"
+msgstr "First phase only"
+
+msgid "Without multipliers"
+msgstr "Without multipliers"
+
 #: TALENT 
 msgid "Talent open contest"
 msgstr "Talent open contest"

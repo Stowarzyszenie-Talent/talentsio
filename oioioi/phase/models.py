@@ -1,7 +1,9 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from oioioi.contests.models import Round
+from oioioi.contests.fields import ScoreField
+from oioioi.contests.models import ProblemInstance, Round
 
 
 class Phase(models.Model):
@@ -18,3 +20,22 @@ class Phase(models.Model):
         return str(
             "{} x{} {} {}".format(_("phase"), self.multiplier, _("inside"), self.round)
         )
+
+
+# These are only for rankings and the submission_report field is "optional"
+class UserCleanResultForProblem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    problem_instance = models.ForeignKey(ProblemInstance, on_delete=models.CASCADE)
+    score = ScoreField(blank=True, null=True)
+
+    class Meta(object):
+        unique_together = ('user', 'problem_instance')
+
+
+class UserFirstPhaseResultForProblem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    problem_instance = models.ForeignKey(ProblemInstance, on_delete=models.CASCADE)
+    score = ScoreField(blank=True, null=True)
+
+    class Meta(object):
+        unique_together = ('user', 'problem_instance')
