@@ -13,7 +13,7 @@ from oioioi.contests.scores import IntegerScore
 # This is the best (in terms of solidness) solution I could come up with
 class _LastPhase:
     multiplier = 0
-    start_date = make_aware(datetime.max)
+    start_date = make_aware(datetime(9000, 1, 1))
 
 
 def update_user_result_for_problem(apps, schema_editor, result):

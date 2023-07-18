@@ -20,7 +20,7 @@ from oioioi.rankings.controllers import DefaultRankingController
 
 class _LastPhase:
     multiplier = 0
-    start_date = make_aware(datetime.max)
+    start_date = make_aware(datetime(9000, 1, 1))
 
 class PhaseMixinForContestController(object):
     is_phase_contest = True

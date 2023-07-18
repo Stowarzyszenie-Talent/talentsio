@@ -33,7 +33,7 @@ TEMPLATES[0]['APP_DIRS'] = False
 TEMPLATES[0]['OPTIONS']['context_processors'] += (
     'oioioi.supervision.processors.supervision_processor',
     'oioioi.notifications.processors.notification_processor',
-    'oioioi.globalmessage.processors.global_message_processor'
+    'oioioi.globalmessage.processors.global_message_processor',
     'oioioi.phase.processors.phase_processor',
 )
 
