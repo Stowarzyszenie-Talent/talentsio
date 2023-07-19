@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from getpass import getpass
 import pytz
 from subprocess import run
@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.utils import timezone
+from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
 from oioioi.contests.models import Contest, Round
 from oioioi.dashboard.models import DashboardMessage
@@ -32,6 +32,10 @@ def createsuperuser(username, password="", email="", first_name="", last_name=""
     User.objects.create_superuser(username, email, password, first_name=first_name, last_name=last_name)
 
 
+def day(round, settings):
+    return round.start_date - settings.TALENT_CONTEST_START[round.contest_id]
+
+
 class Command(BaseCommand):
     help = _(
         "Create contests, rounds, etc. for Stowarzyszenie Talent's camps"
@@ -44,8 +48,10 @@ class Command(BaseCommand):
             for user, password, email, first_name, last_name in settings.TALENT_DEFAULT_SUPERUSERS:
                 createsuperuser(user, password, email, first_name, last_name)
 
-            today = timezone.localtime(timezone=pytz.timezone(settings.TIME_ZONE))
-            today = today.replace(microsecond=0, second=0, minute=0, hour=0)
+            today = make_aware(datetime.strptime(
+                settings.TALENT_CAMP_START_DATE,
+                "%d.%m.%Y",
+            ))
             contest_names = settings.TALENT_CONTEST_NAMES
 
             print("--- Creating contests, rounds, etc.")
@@ -65,14 +71,12 @@ class Command(BaseCommand):
                     cday = today + timedelta(days=daynum)
                     name = "Dzień " + str(roundnum)
                     round_start = cday + settings.TALENT_CONTEST_START[i]
-                    round_end = cday + settings.TALENT_CONTEST_END[i]
                     round_results = cday + settings.TALENT_CONTEST_RESULTS[i]
                     Round.objects.update_or_create(
                         contest=contest,
                         name=name,
                         defaults={
                             "start_date": round_start,
-                            "end_date": round_end,
                             "results_date": round_results,
                         }
                     )
@@ -100,6 +104,7 @@ class Command(BaseCommand):
             # Supervision groups
             for i in settings.TALENT_SUPERVISED_IDS:
                 group, _ = Group.objects.get_or_create(name=contest_names[i])
+                round_end = cday + settings.TALENT_CONTEST_END[i]
                 # Supervisions
                 for r in Round.objects.filter(contest_id=i):
                     Supervision.objects.update_or_create(
@@ -107,27 +112,29 @@ class Command(BaseCommand):
                         round=r,
                         defaults={
                             "start_date": r.start_date,
-                            "end_date": r.end_date,
+                            "end_date": day(r, settings)
+                                + settings.TALENT_CONTEST_END[i],
                         }
                     )
             # Phases
             for r in Round.objects.filter(contest_id__in=settings.TALENT_PHASED_IDS):
-                Phase.objects.update_or_create(
-                    round=r,
-                    multiplier=settings.TALENT_SCORE1,
-                    defaults={
-                        "start_date": r.end_date,
-                    }
-                )
-                Phase.objects.update_or_create(
-                    round=r,
-                    multiplier=settings.TALENT_SCORE2,
-                    defaults={
-                        "start_date": r.start_date \
-                            - settings.TALENT_CONTEST_START[r.contest_id] \
-                            + settings.TALENT_PHASE2_END,
-                    }
-                )
+                rdate = day(r, settings)
+                for (mul, delta) in (
+                    (
+                        settings.TALENT_SCORE1,
+                        settings.TALENT_CONTEST_END[r.contest_id],
+                    ),
+                    (
+                        settings.TALENT_SCORE2, 
+                        settings.TALENT_PHASE2_END,
+                    )):
+                    Phase.objects.update_or_create(
+                        round=r,
+                        multiplier=mul,
+                        defaults={
+                            "start_date": rdate + delta,
+                        }
+                    )
             # Default score reveal configs
             for id,limit in settings.TALENT_DEFAULT_SCOREREVEALS.items():
                 ScoreRevealContestConfig.objects.update_or_create(

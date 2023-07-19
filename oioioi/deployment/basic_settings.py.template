@@ -34,7 +34,10 @@
 
 # Settings for initialiasing OIOIOI at the start of a Stowarzyszenie Talent's
 # camp by the 'talent_camp_init' command in oioioi.talent
-from datetime import timedelta
+from datetime import timedelta, datetime
+
+# The day of the trial contest as "%d.%m.%Y"
+TALENT_CAMP_START_DATE = datetime.strftime(datetime.today(), "%d.%m.%Y")
 
 # (username, password ("" to prompt), email ("" is ok), first_name, last_name)
 TALENT_DEFAULT_SUPERUSERS = [
