@@ -8,7 +8,7 @@ from django_gravatar.helpers import get_gravatar_url
 
 from oioioi.base.menu import side_pane_menus_registry, MenuRegistry
 from oioioi.base.navbar_links import navbar_links_registry
-from oioioi.contests.models import Round
+from oioioi.contests.utils import has_any_active_round
 
 
 def base_url(request):
@@ -30,13 +30,8 @@ def side_menus(request):
 
 
 def navbar_links(request):
-    current_time = timezone.now()
-
-    if hasattr(request, 'contest'):
-        running_rounds = Round.objects.filter(contest=request.contest, start_date__lte=current_time,
-                                              end_date__gt=current_time)
-
-        if running_rounds.exists():
+    if getattr(request, 'contest', None) and getattr(request, 'timestamp', None):
+        if has_any_active_round(request):
             empty_navbar_links_registry = MenuRegistry(_("Navigation Bar Menu"))
             no_links = empty_navbar_links_registry.template_context(request)
 
