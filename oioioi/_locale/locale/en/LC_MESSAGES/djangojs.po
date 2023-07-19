@@ -271,3 +271,9 @@ msgstr "Capacity"
 #: workers/static/common/load_chart.js:63
 msgid "Busy workers"
 msgstr "Busy workers"
+
+
+
+#: phase stuff
+msgid "phase x%(multiplier)s in %(round)s"
+msgstr "phase x%(multiplier)s in %(round)s"

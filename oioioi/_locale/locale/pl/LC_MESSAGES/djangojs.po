@@ -114,7 +114,9 @@ msgstr "Naciśnij Ctrl+C, żeby skopiować"
 #| msgid "end of the %(round_name)s"
 #| msgid_plural "end of the %(round_name)s"
 msgid "end of the %(round_name)s"
-msgstr " końca %(round_name)s"
+msgid_plural "końca %(round_name)s"
+msgstr[0] "końca %(round_name)s"
+msgstr[1] "końca %(round_name)s"
 
 #: clock/static/common/clocks.js:267
 msgid "to the end"
@@ -133,9 +135,9 @@ msgstr "do początku"
 #: clock/static/common/clocks.js:281
 msgid "%(seconds)s second "
 msgid_plural "%(seconds)s seconds "
-msgstr[0] "%(seconds)s sekunda."
-msgstr[1] "%(seconds)s sekundy."
-msgstr[2] "%(seconds)s sekund."
+msgstr[0] "%(seconds)s sekunda"
+msgstr[1] "%(seconds)s sekundy"
+msgstr[2] "%(seconds)s sekund"
 msgstr[3] "%(seconds)s sekund"
 
 #: clock/static/common/clocks.js:286
@@ -369,3 +371,9 @@ msgstr "Pojemność"
 #: workers/static/common/load_chart.js:63
 msgid "Task load"
 msgstr "Obciążenie zadaniami"
+
+
+
+#: phase stuff
+msgid "phase x%(multiplier)s in %(round)s"
+msgstr "fazy x%(multiplier)s w %(round)s"

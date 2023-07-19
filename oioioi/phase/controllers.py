@@ -17,6 +17,9 @@ from oioioi.phase.models import (
 )
 from oioioi.rankings.controllers import DefaultRankingController
 
+class _FirstPhase:
+    multiplier = 100
+    start_date = make_aware(datetime(1984, 1, 1))
 
 class _LastPhase:
     multiplier = 0
