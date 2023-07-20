@@ -1,8 +1,11 @@
 from django.template.loader import render_to_string
 
+from oioioi.supervision.utils import ensure_supervision
+
 
 def supervision_processor(request):
-    is_under_supervision=request.is_under_supervision if hasattr(request, 'is_under_supervision') else False
+    ensure_supervision(request)
+    is_under_supervision = request.is_under_supervision
     return {
         'is_under_supervision': is_under_supervision,
         'extra_navbar_right_supervision': render_to_string(

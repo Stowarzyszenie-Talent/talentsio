@@ -79,8 +79,6 @@ AUTHENTICATION_BACKENDS += (
 )
 
 MIDDLEWARE += (
-    'oioioi.supervision.middleware.supervision_middleware',
-    'oioioi.contests.middleware.CurrentContestMiddleware',
     'oioioi.base.tests.FakeTimeMiddleware',
 )
 

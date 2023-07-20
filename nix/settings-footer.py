@@ -7,11 +7,6 @@ else:
     # Cache compiled templates in production environment.
     TEMPLATES[0]['OPTIONS']['loaders'] = CACHED_TEMPLATE_LOADERS
 
-MIDDLEWARE += (
-    "oioioi.supervision.middleware.supervision_middleware", # needed for supervision
-    "oioioi.contests.middleware.CurrentContestMiddleware", # mandatory
-)
-
 INSTALLED_APPS = (
     "oioioi.participants",
     "oioioi.testrun",

@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from oioioi.supervision.utils import can_user_enter_round
+from oioioi.supervision.utils import can_user_enter_round, ensure_supervision
 from oioioi.contests.controllers import ContestController,RegistrationController
 
 class SupervisionMixinForContestController(object):
@@ -31,7 +31,8 @@ class SupervisionMixinForRegistrationControllers(object):
                 SupervisionMixinForRegistrationControllers,
                 self,
                 ).visible_contests_query(request)
-        if hasattr(request, 'is_under_supervision') and request.is_under_supervision and not request.user.is_superuser:
+        ensure_supervision(request)
+        if request.is_under_supervision:
             filt &= Q(id__in=request.supervised_contests)
         return filt
 
