@@ -46,9 +46,6 @@ def get_phases_status(request, response):
         phase_multiplier=0,
     ))
 
-    next_rounds_times = None
-    current_rounds_times = None
-
     if timestamp and contest:
         rounds = [
             round

@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from django.db import transaction
 from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
 
@@ -34,8 +33,8 @@ class PhaseMixinForContestController(object):
         pi = result.problem_instance
         clean_result, _ = UserCleanResultForProblem.objects.select_for_update(
         ).get_or_create(user=user, problem_instance=pi)
-        first_phase_result, _ = UserFirstPhaseResultForProblem.objects.select_for_update(
-        ).get_or_create(user=user, problem_instance=pi)
+        first_phase_result, _ = UserFirstPhaseResultForProblem.objects. \
+            select_for_update().get_or_create(user=user, problem_instance=pi)
 
         base_qs = Submission.objects.filter(
             problem_instance=pi,
