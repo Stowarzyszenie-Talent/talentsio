@@ -46,9 +46,6 @@ class MemberAdminInline(admin.TabularInline):
     extra = 0
     fields = ('is_present', 'user',)
     autocomplete_fields = ('user',)
-    User.__str__ = lambda self: "{} {} {}".format(
-        self.first_name, self.last_name, self.username
-    )
 
     def get_queryset(self, request):
         qs = super(MemberAdminInline, self).get_queryset(request)

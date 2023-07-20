@@ -18,6 +18,7 @@ DATABASES = {
 
 # Enable optional modules.
 INSTALLED_APPS = (
+    'oioioi.supervision',
     'oioioi.contestlogo',
     'oioioi.teachers',
     'oioioi.ipdnsauth',
@@ -66,6 +67,7 @@ INSTALLED_APPS = (
 TEMPLATES[0]['OPTIONS']['context_processors'] += [
     'oioioi.contestlogo.processors.logo_processor',
     'oioioi.contestlogo.processors.icon_processor',
+    'oioioi.supervision.processors.supervision_processor',
     'oioioi.globalmessage.processors.global_message_processor',
     'oioioi.portals.processors.portal_processor',
 ]
@@ -77,6 +79,7 @@ AUTHENTICATION_BACKENDS += (
 )
 
 MIDDLEWARE += (
+    'oioioi.supervision.middleware.supervision_middleware',
     'oioioi.contests.middleware.CurrentContestMiddleware',
     'oioioi.base.tests.FakeTimeMiddleware',
 )

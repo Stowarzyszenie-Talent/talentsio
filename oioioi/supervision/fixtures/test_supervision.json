@@ -1,0 +1,46 @@
+[
+  {
+    "pk": 1,
+    "model": "supervision.group",
+    "fields": {
+      "name": "g1"
+    }
+  },
+  {
+    "pk": 2,
+    "model": "supervision.group",
+    "fields": {
+      "name": "g2"
+    }
+  },
+  {
+    "pk": 1,
+    "model": "supervision.supervision",
+    "fields": {
+      "round": 1,
+      "group": 1,
+      "start_date": "2011-07-31T20:27:58.768Z",
+      "end_date": "9000-07-31T20:27:58.768Z"
+    }
+  },
+  {
+    "pk": 2,
+    "model": "supervision.supervision",
+    "fields": {
+      "round": 1,
+      "group": 2,
+      "start_date": "2011-07-31T20:27:58.768Z",
+      "end_date": "2012-07-31T20:27:58.768Z"
+    }
+  },
+  {
+    "pk": 3,
+    "model": "supervision.supervision",
+    "fields": {
+      "round": 3,
+      "group": 1,
+      "start_date": "2011-07-31T20:27:58.768Z",
+      "end_date": "9000-07-31T20:27:58.768Z"
+    }
+  }
+]
