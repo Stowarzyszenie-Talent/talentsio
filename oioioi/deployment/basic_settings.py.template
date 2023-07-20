@@ -72,7 +72,7 @@ TALENT_CONTEST_NAMES = {
     "e": "Grupa E Elementarna",
 }
 # For registration
-TALENT_GROUP_FORM_CHOICES = group_choices =  [("", "")] + \
+TALENT_GROUP_FORM_CHOICES = [("", "")] + \
     list(TALENT_CONTEST_NAMES.items()) + \
     [("brak", "Brak grupy (Trzeba mieć grupę! Wybieram na własne ryzyko)"),]
 

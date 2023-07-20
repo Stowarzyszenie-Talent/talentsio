@@ -14,8 +14,6 @@ class TalentRegistrationAdmin(admin.ModelAdmin):
     ordering = ['user__last_name']
     #autocomplete_fields = ['user', 'contest']
 
-    User.__str__ = lambda self: "{} {}".format(self.first_name, self.last_name)
-    
     def has_add_permission(self, request):
         return request.user.is_superuser
 
