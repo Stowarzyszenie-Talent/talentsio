@@ -89,10 +89,12 @@ def notification_function_submission_judged(arguments):
     message_arguments = {
         'short_name': pi.short_name,
         'task_name': str(pi),
-        'score': str(arguments.submission.score),
         'address': url,
         'submission_id': arguments.submission.pk,
     }
+    # For reveals-only we can't send this
+    if pi.controller.can_see_submission_score(request, arguments.submission):
+        message_arguments['score'] = str(arguments.submission.score)
     if pi.contest:
         message_arguments['contest_name'] = pi.contest.name
         
