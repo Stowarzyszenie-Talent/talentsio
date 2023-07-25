@@ -47,11 +47,14 @@ def get_phases_status(request, response):
     ))
 
     if timestamp and contest:
-        rounds = [
-            round
-            for round in Round.objects.filter(contest=contest)
-            if contest.controller.can_see_round(request, round)
-        ]
+        qs = Round.objects.filter(contest=contest)
+        rounds = []
+        cc = contest.controller
+        rtimes_prp = cc.get_round_times_in_bulk(request)
+        for r in qs:
+            rtime = cc.get_round_times(request, r, rtimes_prp)
+            if cc.can_see_round(request, r) and rtime.is_active(timestamp):
+                rounds.append(r)
         # Ordered by start date by default
         next_phase = Phase.objects.filter(
             round_id__in=[r.id for r in rounds],
