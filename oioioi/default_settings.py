@@ -469,7 +469,7 @@ AVAILABLE_COMPILERS = {
         'gcc10_2_1_c99': {'display_name': 'gcc:10.2.1 std=gnu99 -O3'}
     },
     'C++': {
-        'g++10_2_1_cpp17': {'display_name': 'g++:10.2.1 std=c++17'}
+        'g++10_2_1_cpp17': {'display_name': 'g++:10.2.1 std=c++17 -O3'}
     },
     'Pascal': {
         'fpc2_6_2': {'display_name': 'fpc:2.6.2'}
