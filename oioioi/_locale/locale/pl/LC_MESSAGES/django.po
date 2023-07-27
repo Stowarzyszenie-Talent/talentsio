@@ -9751,3 +9751,9 @@ msgstr "rejestracja Talent"
 
 msgid "Talent registrations"
 msgstr "rejestracje Talent"
+
+
+
+#: sio fixes
+msgid "unknown"
+msgstr "nieznany"
