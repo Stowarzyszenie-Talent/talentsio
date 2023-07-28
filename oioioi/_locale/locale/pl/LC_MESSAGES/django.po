@@ -9757,3 +9757,6 @@ msgstr "rejestracje Talent"
 #: sio fixes
 msgid "unknown"
 msgstr "nieznany"
+
+msgid "has full points"
+msgstr "czy uzyskało wszystkie punkty"

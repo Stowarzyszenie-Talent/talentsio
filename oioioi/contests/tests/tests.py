@@ -268,6 +268,7 @@ class TestSubmissionListFilters(TestCase):
     def test_all_filters(self):
         response = self.client.get(self.url, {
             'has_active_system_error': 'yes',
+            'has_full_points': 'yes',
             'kind': 'NORMAL',
             'status__exact': 'INI_OK',
             'revealed': '1',

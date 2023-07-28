@@ -625,6 +625,21 @@ class ContestListFilter(SimpleListFilter):
             return queryset
 
 
+class FullPointsListFilter(SimpleListFilter):
+    title = _("has full points")
+    parameter_name = 'has_full_points'
+
+    def lookups(self, request, model_admin):
+        return [('no', _("No")), ('yes', _("Yes"))]
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            queryset = queryset.filter(score=F('max_score'))
+        elif self.value() == 'no':
+            queryset = queryset.exclude(score=F('max_score'))
+        return queryset
+
+
 class SystemErrorListFilter(SimpleListFilter):
     title = _("has active system error")
     parameter_name = 'has_active_system_error'
@@ -686,6 +701,7 @@ class SubmissionAdmin(admin.ModelAdmin):
             ContestsProblemNameListFilter,
             ContestListFilter,
             SubmissionKindListFilter,
+            FullPointsListFilter,
             'status',
             SubmissionRoundListFilter,
             SystemErrorListFilter,
