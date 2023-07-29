@@ -18,6 +18,7 @@ DATABASES = {
 
 # Enable optional modules.
 INSTALLED_APPS = (
+    'oioioi.perfdata',
     'oioioi.talent',
     'oioioi.phase',
     'oioioi.supervision',

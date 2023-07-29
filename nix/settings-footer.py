@@ -19,6 +19,7 @@ INSTALLED_APPS = (
     "oioioi.statistics",
     "oioioi.notifications",
     "oioioi.globalmessage",
+    "oioioi.perfdata",
     "oioioi.phase",
     "oioioi.supervision",
     "oioioi.talent",

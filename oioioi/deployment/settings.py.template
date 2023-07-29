@@ -205,6 +205,7 @@ INSTALLED_APPS = (
     # 'oioioi.problemsharing',
     # 'oioioi.usergroups',
     # 'oioioi.usercontests',
+    'oioioi.perfdata',
     'oioioi.phase',
     'oioioi.supervision',
     'oioioi.talent',
