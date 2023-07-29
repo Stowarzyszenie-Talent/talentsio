@@ -9760,3 +9760,6 @@ msgstr "nieznany"
 
 msgid "has full points"
 msgstr "czy uzyskało wszystkie punkty"
+
+msgid "is final submission"
+msgstr "czy jest ostatnim zgłoszeniem"

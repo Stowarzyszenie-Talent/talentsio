@@ -625,6 +625,22 @@ class ContestListFilter(SimpleListFilter):
             return queryset
 
 
+class FinalSubmissionListFilter(SimpleListFilter):
+    title = _("is final submission")
+    parameter_name = 'is_final'
+
+    def lookups(self, request, model_admin):
+        return [('no', _("No")), ('yes', _("Yes"))]
+
+    def queryset(self, request, queryset):
+        q = Q(submissionreport__userresultforproblem__isnull=False)
+        if self.value() == 'yes':
+            queryset = queryset.filter(q)
+        elif self.value() == 'no':
+            queryset = queryset.exclude(q)
+        return queryset
+
+
 class FullPointsListFilter(SimpleListFilter):
     title = _("has full points")
     parameter_name = 'has_full_points'
@@ -701,6 +717,7 @@ class SubmissionAdmin(admin.ModelAdmin):
             ContestsProblemNameListFilter,
             ContestListFilter,
             SubmissionKindListFilter,
+            FinalSubmissionListFilter,
             FullPointsListFilter,
             'status',
             SubmissionRoundListFilter,
