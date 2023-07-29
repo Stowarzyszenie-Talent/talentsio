@@ -8,6 +8,8 @@ else:
     TEMPLATES[0]['OPTIONS']['loaders'] = CACHED_TEMPLATE_LOADERS
 
 INSTALLED_APPS = (
+    "oioioi.exportszu",
+    "oioioi.plagiarism",
     "oioioi.participants",
     "oioioi.testrun",
     "oioioi.scoresreveal",

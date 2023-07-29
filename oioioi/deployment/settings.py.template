@@ -167,6 +167,8 @@ MIDDLEWARE += (
 # and/or AUTHENTICATION_BACKENDS commented/uncommented.
 
 INSTALLED_APPS = (
+    "oioioi.exportszu",
+    "oioioi.plagiarism",
     # 'oioioi.contestlogo',
     # 'oioioi.teachers',
     # 'oioioi.simpleui',
