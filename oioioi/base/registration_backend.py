@@ -49,21 +49,42 @@ class RegistrationView(DefaultRegistrationView):
         )
 
         if 'oioioi.talent' in settings.INSTALLED_APPS:
-            from oioioi.talent.models import TalentRegistrationSwitch, TalentRegistration
+            from django.core.exceptions import SuspiciousOperation
+
+            from oioioi.participants.models import Participant
+            from oioioi.supervision.models import Membership, Group
+            from oioioi.talent.models import (
+                TalentRegistrationSwitch,
+                TalentRegistration,
+            )
             if TalentRegistrationSwitch.objects.filter(status=True).exists():
                 group = data['group']
                 if not group == "brak":
                     if group not in settings.TALENT_CONTEST_NAMES:
                         raise SuspiciousOperation
-                    TalentRegistration.objects.create(user=user, contest_id=group)
+                    TalentRegistration.objects.create(
+                        user=user,
+                        contest_id=group,
+                    )
                     if group in settings.TALENT_SUPERVISED_IDS:
-                        from oioioi.supervision.models import Membership, Group
-                        group_name=Group.objects.get(name=settings.TALENT_CONTEST_NAMES[group])
-                        Membership.objects.get_or_create(user=user, group=group_name)
-                    if group in settings.TALENT_CLOSED_CONTEST_IDS:
-                        from oioioi.participants.models import Participant
-                        Participant.objects.get_or_create(contest_id=group, user=user)
-                        
+                        group_name = Group.objects.get(
+                            name=settings.TALENT_CONTEST_NAMES[group],
+                        )
+                        Membership.objects.get_or_create(
+                            user=user,
+                            group=group_name,
+                        )
+                    Participant.objects.get_or_create(
+                        contest_id=group,
+                        user=user,
+                    )
+                for g in settings.TALENT_CONTEST_IDS:
+                    if g not in settings.TALENT_CLOSED_CONTEST_IDS:
+                        Participant.objects.get_or_create(
+                            contest_id=g,
+                            user=user,
+                        )
+
         registration_profile = RegistrationProfile.objects.create_profile(user)
         signals.user_registered.send(sender=self.__class__, user=user, request=request)
         PreferencesSaved.send(form, user=user)

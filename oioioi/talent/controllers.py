@@ -1,8 +1,10 @@
 from django.utils.translation import gettext_lazy as _
 
 from oioioi.participants.controllers import ParticipantsController
-from oioioi.contests.utils import is_contest_admin
-from oioioi.phase.controllers import PhaseMixinForContestController, PhaseRankingController
+from oioioi.phase.controllers import (
+    PhaseMixinForContestController,
+    PhaseRankingController,
+)
 from oioioi.programs.controllers import ProgrammingContestController
 
 
@@ -20,7 +22,8 @@ class TalentOpenContestController(ProgrammingContestController):
         )
 
         environ['group_scorer'] = 'oioioi.programs.utils.min_group_scorer'
-        environ['test_scorer'] = 'oioioi.programs.utils.threshold_linear_test_scorer'
+        environ['test_scorer'] = \
+            'oioioi.programs.utils.threshold_linear_test_scorer'
 
 TalentOpenContestController.mix_in(PhaseMixinForContestController)
 

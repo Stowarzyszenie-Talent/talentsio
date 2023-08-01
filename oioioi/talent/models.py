@@ -15,12 +15,16 @@ class TalentRegistrationSwitch(models.Model):
 
 class TalentRegistration(models.Model):
     user = models.OneToOneField(
-            User,
-            related_name="talent_registration",
-            verbose_name=_("user"),
-            on_delete=models.CASCADE
-        )
-    contest = models.ForeignKey(Contest, verbose_name=_("contest"), on_delete=models.CASCADE)
+        User,
+        related_name="talent_registration",
+        verbose_name=_("user"),
+        on_delete=models.CASCADE,
+    )
+    contest = models.ForeignKey(
+        Contest,
+        verbose_name=_("contest"),
+        on_delete=models.CASCADE,
+    )
     
     class Meta(object):
         verbose_name = _("Talent registration")

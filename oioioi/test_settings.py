@@ -146,6 +146,8 @@ TALENT_DEFAULT_SUPERUSERS = [
     ("admin", "admin", "admin@admin.pl", "admin", "admin"),
 ]
 
+TALENT_BEZ_DOBIJANIA = True
+
 TALENT_SCORE1 = 75
 TALENT_PHASE2_END = timedelta(hours=21, minutes=30)
 TALENT_SCORE2 = 60
