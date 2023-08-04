@@ -9,7 +9,11 @@ from oioioi.contests.controllers import submission_template_context
 from oioioi.contests.models import Submission
 from oioioi.programs.controllers import ProgrammingContestController
 from oioioi.scoresreveal.models import ScoreReveal, ScoreRevealConfig
-from oioioi.scoresreveal.utils import has_scores_reveal, is_revealed
+from oioioi.scoresreveal.utils import (
+    get_scores_reveal_config,
+    has_scores_reveal,
+    is_revealed,
+)
 
 
 class ScoresRevealContestControllerMixin(object):
@@ -36,17 +40,10 @@ class ScoresRevealContestControllerMixin(object):
         )
 
     def get_scores_reveals_disable_time(self, problem_instance):
-        try:
-            return problem_instance.scores_reveal_config.disable_time
-        except ScoreRevealConfig.DoesNotExist:
-            return problem_instance.contest.scores_reveal_config.disable_time
-
+        return get_scores_reveal_config(problem_instance).disable_time
 
     def get_scores_reveals_limit(self, problem_instance):
-        try:
-            return problem_instance.scores_reveal_config.reveal_limit
-        except ScoreRevealConfig.DoesNotExist:
-            return problem_instance.contest.scores_reveal_config.reveal_limit
+        return get_scores_reveal_config(problem_instance).reveal_limit
 
     def is_scores_reveals_limit_reached(self, user, problem_instance):
         limit = self.get_scores_reveals_limit(problem_instance)
@@ -115,6 +112,8 @@ class ScoresRevealContestControllerMixin(object):
             return False, _("The round is not active.")
         if request.user != submission.user:
             return False, _("Only author can reveal the submission score.")
+        if not has_scores_reveal(pi):
+            return False, _("Score revealing is disabled for this problem")
         if self.is_scores_reveals_limit_reached(request.user, pi):
             return False, _("You have already reached the reveals limit.")
         if submission.user is None:

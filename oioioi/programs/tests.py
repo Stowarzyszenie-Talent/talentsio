@@ -48,6 +48,7 @@ from oioioi.programs.models import (
 from oioioi.programs.problem_instance_utils import get_allowed_languages_dict
 from oioioi.programs.utils import form_field_id_for_langs
 from oioioi.programs.views import _testreports_to_generate_outs
+from oioioi.scoresreveal.models import ScoreRevealConfig
 from oioioi.sinolpack.tests import get_test_filename
 from oioioi.evalmgr.tasks import create_environ
 
@@ -553,13 +554,30 @@ class TestSubmission(TestCase, SubmitFileMixin):
 
         # Check if a notification for user 1001 was send
         # And user 1002 doesn't received a notification
+        self.assertEqual(len(messages), 1)
         self.assertEqual(msg_count['user_1001_notifications'], 1)
         self.assertEqual(msg_count['user_1002_notifications'], 0)
 
+        # Without full reports available
+        environ['is_rejudge'] = False
+        Round.objects.update(results_date=None)
+        send_notification_judged(environ)
         self.assertEqual(len(messages), 1)
+
+        # With score reveals
+        config = ScoreRevealConfig.objects.create(
+            problem_instance=submission.problem_instance,
+            reveal_limit=1,
+        )
+        send_notification_judged(environ)
+        self.assertEqual(len(messages), 2)
+
         self.assertIn('%(score)s', messages[0][0])
+        self.assertIn('%(score)s', messages[1][0])
         self.assertIn('score', messages[0][1])
+        self.assertIn('score', messages[1][1])
         self.assertEqual(messages[0][1]['score'], '34')
+        self.assertEqual(messages[1][1]['score'], 'unknown')
 
         NotificationHandler.send_notification = send_notification_backup
 

@@ -51,18 +51,22 @@ NotificationHandler.register_notification(
 def notification_function_submission_judged(arguments):
     assert hasattr(arguments, 'user') and hasattr(arguments, 'submission')
     pi = arguments.submission.problem_instance
+    pic = pi.controller
     request = RequestFactory().get('/', data={'name': u'test'})
     request.user = arguments.user
     request.contest = pi.contest
     request.timestamp = timezone.now()
 
-    # Check if the final report is visible to the user
-    if not pi.controller.can_see_submission_score(
-        request, arguments.submission
-    ) and not (
+    can_see_score = pic.can_see_submission_score(request, arguments.submission)
+    can_reveal = (
         'oioioi.scoresreveal' in settings.INSTALLED_APPS
-        and pi.controller.can_reveal(request, arguments.submission)
-    ):
+        and pi.contest # otherwise there can't be reveals
+        and hasattr(pic, 'can_reveal')
+        and pic.can_reveal(request, arguments.submission)[0]
+    )
+    # Check if the user will see any change in the submission
+    # FIXME: We should have a method in the controllers for this
+    if not can_see_score and not can_reveal:
         return
 
     if pi.contest:
@@ -92,7 +96,7 @@ def notification_function_submission_judged(arguments):
         'submission_id': arguments.submission.pk,
     }
     # For reveals-only we can't send this
-    if pi.controller.can_see_submission_score(request, arguments.submission):
+    if can_see_score:
         message_arguments['score'] = str(arguments.submission.score)
     else:
         message_arguments['score'] = gettext_noop("unknown")
