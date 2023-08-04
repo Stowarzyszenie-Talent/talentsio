@@ -29,11 +29,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1687862504,
-        "narHash": "sha256-TKvbtyr2O5Yb01v8LA1jo+xjjYRpcAYJgLyFtprVUts=",
+        "lastModified": 1691147169,
+        "narHash": "sha256-86038nco6CwwsEkVUcUrw6UWj17nYsDhhgHEk/Dxnmo=",
         "owner": "Stowarzyszenie-Talent",
         "repo": "filetracker",
-        "rev": "a87173415ec57685961617dbad65ef9d4e568b6d",
+        "rev": "c4fed7aeb7896ce8cde8e831e06abd10a03f7941",
         "type": "github"
       },
       "original": {
