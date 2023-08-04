@@ -16,6 +16,7 @@ from oioioi.contests.models import (
 from oioioi.problems.models import Problem
 from oioioi.problems.utils import get_new_problem_instance
 from oioioi.rankings.controllers import CONTEST_RANKING_KEY
+from oioioi.talent.management.commands.talent_camp_init import OPEN_CONTEST
 
 @override_settings(TALENT_CAMP_START_DATE="1.1.2012")
 class TestTalent(TestCase):
@@ -28,6 +29,9 @@ class TestTalent(TestCase):
         call_command('talent_camp_init')
         self.base_dir = os.path.join(os.path.dirname(__file__), 'files')
         self.contest = Contest.objects.get(id='a')
+        # We ought to test anonymous users too
+        self.contest.controller_name = OPEN_CONTEST
+        self.contest.save()
         self.c_kwargs = {'contest_id': self.contest.id}
         call_command('addproblem', self.get_test_filename('grupy.zip'))
         self.pi = get_new_problem_instance(Problem.objects.get(), self.contest)
