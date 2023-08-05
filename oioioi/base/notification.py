@@ -78,7 +78,7 @@ class NotificationHandler(logging.StreamHandler):
                 exchange='', routing_key=queue_name, body=json.dumps(message)
             )
         except (AMQPChannelError, AMQPConnectionError):
-            logger.info("Notifications: Connection with RabbitMQ broken", exc_info=True)
+            logger.info("Notifications: Connection with RabbitMQ broken", exc_info=repeated)
             thread_data.rabbitmq_connected = False
 
             # Make a second try
