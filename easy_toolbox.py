@@ -25,16 +25,20 @@ BASE_DOCKER_COMMAND = "OIOIOI_UID=$(id -u) docker-compose" + \
 RAW_COMMANDS = [
     ("build", "Build OIOIOI container from source.", "build", True),
     ("up", "Run all SIO2 containers", "up -d"),
-    ("down", "Stop and remove all SIO2 containers", "down", True),
+    ("down", "Stop and remove all SIO2 containers", "down"),
+    ("logs", "Print and follow logs", "logs -n 20 -f"),
+    ("restart-uwsgi", "Restart uwsgi", "{exec} web ./manage.py supervisor restart uwsgi"),
     ("run", "Run server", "{exec} web python3 manage.py runserver 0.0.0.0:8000"),
     ("stop", "Stop all SIO2 containers", "stop"),
     ("bash", "Open command prompt on web container.", "{exec} web bash"),
     ("bash-db", "Open command prompt on database container.", "{exec} db bash"),
-    # This one CLEARS the database. Use wisely.
-    ("flush-db", "Clear database.", "{exec} web python manage.py flush --noinput", True),
+    # Use wisely.
+    ("flush", "Clear the database and filetracker.", "down -v", True),
     ("add-superuser", "Create admin_admin.",
      "{exec} web python manage.py loaddata ../oioioi/oioioi_cypress/cypress/fixtures/admin_admin.json"),
     ("test", "Run unit tests.", "{exec} web ../oioioi/test.sh"),
+    # Flaky.
+    ("test-paralell", "Run unit tests in paralell.", "{exec} web ../oioioi/test.sh -n auto --dist=loadscope"),
     ("test-slow", "Run unit tests. (--runslow)", "{exec} web ../oioioi/test.sh --runslow"),
     ("test-abc", "Run specific test file. (edit the toolbox)",
      "{exec} web ../oioioi/test.sh -v oioioi/problems/tests/test_task_archive.py"),
