@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils.timezone import make_aware
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 from oioioi.contests.models import Contest, Round
 from oioioi.dashboard.models import DashboardMessage
 from oioioi.phase.models import Phase
