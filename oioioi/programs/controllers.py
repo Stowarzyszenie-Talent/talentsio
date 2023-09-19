@@ -18,6 +18,7 @@ from oioioi.base.utils.inputs import narrow_input_field
 from oioioi.base.widgets import AceEditorWidget
 from oioioi.contests.controllers import ContestController, submission_template_context
 from oioioi.contests.models import ScoreReport, SubmissionReport
+from oioioi.sinolpack.models import ExtraConfig
 from oioioi.contests.utils import (
     is_contest_admin,
     is_contest_basicadmin,
@@ -422,7 +423,7 @@ class ProgrammingProblemController(ProblemController):
         submission.save()
 
     def get_submission_size_limit(self, problem_instance):
-        return 102400  # in bytes
+        return ExtraConfig.objects.get(problem=problem_instance.problem).parsed_config.get('user_file_size', 102400)
 
     def check_repeated_submission(self, request, problem_instance, form):
         return (
