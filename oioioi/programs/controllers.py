@@ -423,7 +423,7 @@ class ProgrammingProblemController(ProblemController):
         submission.save()
 
     def get_submission_size_limit(self, problem_instance):
-        return ExtraConfig.objects.get(problem=problem_instance.problem).parsed_config.get('user_file_size', 102400)
+        return ExtraConfig.objects.get(problem=problem_instance.problem).parsed_config.get('submission_size_limit', 102400)
 
     def check_repeated_submission(self, request, problem_instance, form):
         return (
