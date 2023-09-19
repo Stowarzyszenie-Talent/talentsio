@@ -18,6 +18,7 @@ from oioioi.base.utils.inputs import narrow_input_field
 from oioioi.base.widgets import AceEditorWidget
 from oioioi.contests.controllers import ContestController, submission_template_context
 from oioioi.contests.models import ScoreReport, SubmissionReport
+from oioioi.sinolpack.models import ExtraConfig
 from oioioi.contests.utils import (
     is_contest_admin,
     is_contest_basicadmin,
@@ -421,8 +422,13 @@ class ProgrammingProblemController(ProblemController):
 
         submission.save()
 
-    def get_submission_size_limit(self, problem_instance):
-        return 102400  # in bytes
+    def get_submission_size_limit(self, problem_instance): # in bytes
+        return ExtraConfig.objects.get(
+            problem_id=problem_instance.problem_id,
+        ).parsed_config.get(
+            'submission_size_limit',
+            settings.DEFAULT_SUBMISSION_SIZE_LIMIT,
+        )
 
     def check_repeated_submission(self, request, problem_instance, form):
         return (
@@ -465,12 +471,19 @@ class ProgrammingProblemController(ProblemController):
                 _("This language is not allowed for selected problem.")
             )
 
+        controller = problem_instance.controller
+        size_limit = controller.get_submission_size_limit(problem_instance)
+
         if is_file_chosen:
+            if cleaned_data['file'].size > size_limit:
+                raise ValidationError(_("File size limit exceeded."))
             code = cleaned_data['file'].read()
         else:
+            if len(cleaned_data['code']) > size_limit:
+                raise ValidationError(_("Code length limit exceeded."))
             code = cleaned_data['code'].encode('utf-8')
 
-        if problem_instance.controller.check_repeated_submission(
+        if controller.check_repeated_submission(
             request, problem_instance, form
         ):
             lines = iter(code.splitlines())
@@ -565,17 +578,6 @@ class ProgrammingProblemController(ProblemController):
         form.set_custom_field_attributes(field_name, problem_instance)
 
     def adjust_submission_form(self, request, form, problem_instance):
-        controller = problem_instance.controller
-        size_limit = controller.get_submission_size_limit(problem_instance)
-
-        def validate_file_size(file):
-            if file.size > size_limit:
-                raise ValidationError(_("File size limit exceeded."))
-
-        def validate_code_length(code):
-            if len(code) > size_limit:
-                raise ValidationError(_("Code length limit exceeded."))
-
         def validate_language(file):
             ext = get_extension(file.name)
             if ext not in get_allowed_languages_extensions(problem_instance):
@@ -597,7 +599,7 @@ class ProgrammingProblemController(ProblemController):
             required=False,
             widget=CancellableFileInput,
             allow_empty_file=False,
-            validators=[validate_file_size, validate_language],
+            validators=[validate_language],
             label=_("File"),
             help_text=mark_safe(
                 _(
@@ -643,7 +645,6 @@ class ProgrammingProblemController(ProblemController):
         form.fields['code'] = forms.CharField(
             required=False,
             label=_("Code"),
-            validators=[validate_code_length],
             widget=code_widget
         )
 
