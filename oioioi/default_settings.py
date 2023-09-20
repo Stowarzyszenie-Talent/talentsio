@@ -466,10 +466,10 @@ SUBMITTABLE_EXTENSIONS = {'C++': ['cpp', 'cc'], 'C': ['c'], 'Pascal': ['pas'],
 # display_name entry.
 AVAILABLE_COMPILERS = {
     'C': {
-        'gcc10_2_1_c99': {'display_name': 'gcc:10.2.1 std=gnu99 -O3'}
+        'gcc12_2_0_c99': {'display_name': 'gcc:12.2.0 std=gnu99 -O3'}
     },
     'C++': {
-        'g++10_2_1_cpp17': {'display_name': 'g++:10.2.1 std=c++17 -O3'}
+        'g++12_2_0_cpp20': {'display_name': 'g++:12.2.0 std=c++20 -O3'}
     },
     'Pascal': {
         'fpc2_6_2': {'display_name': 'fpc:2.6.2'}
@@ -509,7 +509,7 @@ SYSTEM_COMPILERS = {
 # This setting sets the default compilers used throughout the platform.
 # There should be an entry for every language supported with key being the same
 # as in SUBMITTABLE_LANGUAGES and value contained in AVAILABLE_COMPILERS.
-DEFAULT_COMPILERS = {'C': 'gcc10_2_1_c99', 'C++': 'g++10_2_1_cpp17',
+DEFAULT_COMPILERS = {'C': 'gcc12_2_0_c99', 'C++': 'g++12_2_0_cpp20',
                      'Pascal': 'fpc2_6_2',
                      #'Java': 'java1_8', 'Python': 'python',
                      'Output-only': 'output-only'}
