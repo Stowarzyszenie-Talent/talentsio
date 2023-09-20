@@ -1,1 +1,1 @@
-{% load i18n %}{% trans "{{ site }} - Registration" %}
+{% load i18n %}{% trans "{{ site }} - Sign-up" %}

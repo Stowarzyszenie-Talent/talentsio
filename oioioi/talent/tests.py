@@ -15,7 +15,7 @@ class TestTalent(TestCase):
 
     def register(self, username, group):
         count = User.objects.count()
-        response = self.client.post('/register/', {
+        response = self.client.post('/sign-up/', {
             'username': username,
             'first_name': 'a',
             'last_name': 'a',
@@ -30,8 +30,7 @@ class TestTalent(TestCase):
             'captcha_1': 'PASSED',
         }, follow=True)
         self.assertEqual(response.status_code, 200)
-        print(response.content)
-        self.assertContains(response, "Registration successful")
+        self.assertContains(response, "Sign-up successful")
         self.assertEqual(count+1, User.objects.count())
         if group != 'brak':
             self.assertEqual(TalentRegistration.objects.get(

@@ -8,7 +8,7 @@ services:
     stop_grace_period: 1m
   web:
     image: $OIOIOI_VERSION
-    command: ["/sio2/oioioi/oioioi_init_prod.sh"]
+    command: ["/sio2/oioioi/oioioi_init.sh"]
     env_file: env
     ports:
       - "127.0.0.1:80:8000"

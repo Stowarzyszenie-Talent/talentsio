@@ -56,8 +56,6 @@ let
 
     ADMINS = [ ];
     MANAGERS = pythonExpression "ADMINS";
-
-    SEND_USER_ACTIVATION_EMAIL = false;
   };
 in
 {

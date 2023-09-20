@@ -241,7 +241,7 @@ class UserForm(forms.ModelForm):
         PreferencesSaved.send(self, user=instance)
         return instance
 
-class UserChangeForm(UserForm):
+class OioioiUserForm(UserForm):
     confirm_password = forms.CharField(widget=forms.PasswordInput(), required=False)
 
     class Media(object):
@@ -249,7 +249,7 @@ class UserChangeForm(UserForm):
 
     def __init__(self,  *args, **kwargs):
 
-        super(UserChangeForm, self).__init__(*args, **kwargs)
+        super(OioioiUserForm, self).__init__(*args, **kwargs)
         self.user = kwargs.pop('instance', None)
 
     def clean_confirm_password(self):

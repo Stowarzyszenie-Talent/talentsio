@@ -1,7 +1,7 @@
 {% load i18n %}{% blocktrans %}Welcome to {{ site }},
 
-to finish the registration, please click on the link below:{% endblocktrans %}
-https://{{site}}{% url 'registration_activate' activation_key %}
+to finish the sign-up process, please click on the link below:{% endblocktrans %}
+http://{{site}}{% url 'registration_activate' activation_key %}
 
 {% blocktrans %}Best wishes,
 {{ site }}{% endblocktrans %}

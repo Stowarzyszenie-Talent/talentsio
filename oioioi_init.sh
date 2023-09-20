@@ -4,12 +4,20 @@ set -x
 
 /sio2/oioioi/wait-for-it.sh -t 60 "db:5432"
 
-sed -i "s/DEBUG = True/DEBUG = False/;s/^COMPRESS_OFFLINE.*$/COMPRESS_OFFLINE = False/" /sio2/deployment/settings.py
-export OIOIOI_SERVER_MODE="uwsgi-http"
+compr="True"
+
+[[ "$1" == "--dev" ]] && compr="False"
+sed -i "s/DEBUG = True/DEBUG = False/;s/^COMPRESS_OFFLINE.*\$/COMPRESS_OFFLINE = $compr/" /sio2/deployment/settings.py
 
 ./manage.py migrate &
-./manage.py collectstatic --noinput &
+if [ "$1" == "--dev" ]; then
+    export OIOIOI_SERVER_MODE="uwsgi-http"
+    ./manage.py collectstatic --noinput &
+else
+    export OIOIOI_SERVER_MODE="uwsgi"
+    ./manage.py compilejsi18n &
+    (./manage.py collectstatic --noinput && ./manage.py compress > /dev/null) &
+fi
 
 wait
-
 exec ./manage.py supervisor --logfile=/sio2/deployment/logs/supervisor.log
