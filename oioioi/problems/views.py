@@ -422,6 +422,7 @@ def problemset_generate_view(request, page_title, problems, view_type):
     show_add_button, administered_recent_contests = generate_add_to_contest_metadata(
         request
     )
+    show_contest = request.user.is_superuser
     show_tags = settings.PROBLEM_TAGS_VISIBLE
     show_statistics = settings.PROBLEM_STATISTICS_AVAILABLE
     show_user_statistics = show_statistics and request.user.is_authenticated
@@ -438,6 +439,10 @@ def problemset_generate_view(request, page_title, problems, view_type):
         'user_score': 1,
         'add_button': 1,
     }
+    if show_contest:
+        col_proportions['tags'] -= 2
+        col_proportions['name'] -= 1
+        col_proportions['contest'] = 3
     if not show_add_button:
         col_proportions['tags'] += col_proportions.pop('add_button')
     if not show_statistics:
@@ -480,6 +485,7 @@ def problemset_generate_view(request, page_title, problems, view_type):
             'origin_tags': origin_tags,
             'algorithm_tags': request.GET.getlist('algorithm'),
             'difficulty_tags': difficulty_tags,
+            'show_contest': show_contest,
             'show_tags': show_tags,
             'show_statistics': show_statistics,
             'show_user_statistics': show_user_statistics,

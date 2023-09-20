@@ -21,6 +21,12 @@
                         </a>
                     </th>
 
+                    {% if show_contest %}
+                        <th class="col-sm-{{ col_proportions.contest }}">
+                            {% trans "Contest" %}
+                        </th>
+                    {% endif %}
+
                     {% if show_tags %}
                         <th class="col-sm-{{ col_proportions.tags }}">
                             {% trans "Tags" %}
@@ -84,6 +90,16 @@
                             {{ problem.name }}
                         </a>
                     </td>
+
+                    {% if show_contest %}
+                        <td>
+                            {% if problem.contest %}
+                                <a href="{% url 'default_contest_view' contest_id=problem.contest_id %}">
+                                    {{ problem.contest }}
+                                </a>
+                            {% endif %}
+                        </td>
+                    {% endif %}
 
                     {% if show_tags %}
                         <td>
