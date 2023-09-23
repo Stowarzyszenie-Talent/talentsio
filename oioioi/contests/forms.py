@@ -297,6 +297,9 @@ class SubmissionForm(forms.Form):
         if not decision:
             raise ValidationError(str(getattr(decision, 'exc', _("Permission denied"))))
 
+        if self.fields['file'].file_size > pi.controller.get_submission_size_limit(pi):
+            raise ValidationError(_("File size limit exceeded."))
+        
         return pi.controller.validate_submission_form(
             self.request, pi, self, cleaned_data
         )

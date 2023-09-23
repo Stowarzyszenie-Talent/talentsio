@@ -423,7 +423,10 @@ class ProgrammingProblemController(ProblemController):
         submission.save()
 
     def get_submission_size_limit(self, problem_instance):
-        return ExtraConfig.objects.get(problem=problem_instance.problem).parsed_config.get('submission_size_limit', 102400)
+        return ExtraConfig.objects.get(problem=problem_instance.problem).parsed_config.get(
+                'submission_size_limit',
+                settings.DEFAULT_MAX_FILE_SIZE
+            )
 
     def check_repeated_submission(self, request, problem_instance, form):
         return (
@@ -570,7 +573,8 @@ class ProgrammingProblemController(ProblemController):
         size_limit = controller.get_submission_size_limit(problem_instance)
 
         def validate_file_size(file):
-            if file.size > size_limit:
+            form.fields['file'].file_size = file.size
+            if file.size > settings.PRINTING_MAX_FILE_SIZE:
                 raise ValidationError(_("File size limit exceeded."))
 
         def validate_code_length(code):
