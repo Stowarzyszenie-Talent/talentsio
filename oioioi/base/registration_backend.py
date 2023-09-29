@@ -49,41 +49,12 @@ class RegistrationView(DefaultRegistrationView):
         )
 
         if 'oioioi.talent' in settings.INSTALLED_APPS:
-            from django.core.exceptions import SuspiciousOperation
-
-            from oioioi.participants.models import Participant
-            from oioioi.supervision.models import Membership, Group
-            from oioioi.talent.models import (
-                TalentRegistrationSwitch,
-                TalentRegistration,
-            )
+            from oioioi.talent.models import TalentRegistrationSwitch
             if TalentRegistrationSwitch.objects.filter(status=True).exists():
                 group = data['group']
                 if not group == "brak":
-                    if group not in settings.TALENT_CONTEST_NAMES:
-                        raise SuspiciousOperation
-                    TalentRegistration.objects.create(
-                        user=user,
-                        contest_id=group,
-                    )
-                    if group in settings.TALENT_SUPERVISED_IDS:
-                        group_name = Group.objects.get(
-                            name=settings.TALENT_CONTEST_NAMES[group],
-                        )
-                        Membership.objects.get_or_create(
-                            user=user,
-                            group=group_name,
-                        )
-                    Participant.objects.get_or_create(
-                        contest_id=group,
-                        user=user,
-                    )
-                for g in settings.TALENT_CONTEST_IDS:
-                    if g not in settings.TALENT_CLOSED_CONTEST_IDS:
-                        Participant.objects.get_or_create(
-                            contest_id=g,
-                            user=user,
-                        )
+                    from oioioi.talent.utils import set_talent_participant
+                    set_talent_participant(user, group)
 
         registration_profile = RegistrationProfile.objects.create_profile(user)
         signals.user_registered.send(sender=self.__class__, user=user, request=request)

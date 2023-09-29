@@ -8377,3 +8377,6 @@ msgstr "Talent registration"
 
 msgid "Talent registrations"
 msgstr "Talent registrations"
+
+msgid "Move to %(contest_name)s"
+msgstr "Move to %(contest_name)s"
