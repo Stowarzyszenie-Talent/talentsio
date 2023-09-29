@@ -17,6 +17,7 @@ else
     export OIOIOI_SERVER_MODE="uwsgi"
     ./manage.py compilejsi18n &
     (./manage.py collectstatic --noinput && ./manage.py compress > /dev/null) &
+    sudo /etc/init.d/nginx start &
 fi
 
 wait
