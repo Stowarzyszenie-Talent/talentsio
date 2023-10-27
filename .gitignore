@@ -27,3 +27,5 @@
 /.vscode/
 /.fleet/
 basic_settings*.py
+
+result

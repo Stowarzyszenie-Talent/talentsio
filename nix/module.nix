@@ -129,6 +129,15 @@ in
       type = lib.types.ints.positive;
     };
 
+    separateStdoutFromJournal = lib.mkOption {
+      default = false;
+      description = ''
+        Redirect oioioi's services' stdouts to files in /var/log/sio2.
+        Don't forget to rotate them!
+      '';
+      type = lib.types.bool;
+    };
+
     extraSettings = lib.mkOption {
       default = [ ];
       description = "Extra settings written to settings.py";
@@ -345,13 +354,18 @@ in
         '';
       };
 
-      services.sioworkersd.enable = true;
+      services.sioworkersd = {
+        enable = true;
+        separateStdoutFromJournal = cfg.separateStdoutFromJournal;
+      };
 
       users.extraGroups.sio2-filetracker = { };
       services.filetracker-cache-cleaner.paths = [ "/var/cache/sio2-filetracker-cache" ];
       services.sioworker.filetrackerCache = "/var/cache/sio2-filetracker-cache";
 
       systemd.tmpfiles.rules = [
+        #Type Path                           Mode User Group Age  Argument
+        "d /var/log/sio2                     2750 root wheel - -"
         "d /var/cache/sio2-filetracker-cache 2770 root sio2-filetracker - -"
         "A /var/cache/sio2-filetracker-cache - - - - u::rwx,d:g::rwx,o::---"
       ];
@@ -367,7 +381,8 @@ in
       systemd.services =
         let
           mkSioProcess = { name, requiresDatabase ? false, requiresFiletracker ? false, ... }@x:
-            let extraRequires = (lib.optionals requiresDatabase [ "postgresql.service" "sio2-migrate.service" ]) ++ (lib.optional requiresFiletracker "filetracker.service") ++ [ "sio2-rabbitmq.service" ];
+            let
+              extraRequires = (lib.optionals requiresDatabase [ "postgresql.service" "sio2-migrate.service" ]) ++ (lib.optional requiresFiletracker "filetracker.service") ++ [ "sio2-rabbitmq.service" ];
             in
             {
               enable = true;
@@ -388,6 +403,10 @@ in
                 Type = "simple";
 
                 ReadWritePaths = (lib.optional requiresFiletracker "/var/cache/sio2-filetracker-cache") ++ (x.ReadWritePaths or [ ]);
+                # S*stemd is retarded and tries to open the stdout file first
+                #LogsDirectory = lib.mkIf cfg.separateStdoutFromJournal "sio2";
+                StandardOutput = lib.mkIf cfg.separateStdoutFromJournal "append:/var/log/sio2/${name}.log";
+
                 SupplementaryGroups = (lib.optional requiresFiletracker "sio2-filetracker") ++ (x.SupplementaryGroups or [ ]);
 
                 User = "sio2";

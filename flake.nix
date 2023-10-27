@@ -24,7 +24,7 @@
       ];
 
       module = { pkgs, lib, config, ... }: import ./nix/module.nix {
-        # Use our version of nixpkgs so that the module works consistently across different nixpkgs versions
+        # Use pinned nixpkgs from our input for epic reproducibility.
         pkgs = import nixpkgs {
           inherit (pkgs) system; inherit overlays;
         };
@@ -38,7 +38,7 @@
 
         imports = [
           filetracker.nixosModules.default
-          sioworkers.nixosModules.default
+          sioworkers.nixosModules.self
           module
         ];
       };
