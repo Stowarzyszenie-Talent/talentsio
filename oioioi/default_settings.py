@@ -620,8 +620,14 @@ LOGGING = {
     },
     'handlers': {
         'console': {
+            'level': 'WARNING',
+            'class': 'logging.StreamHandler',
+            'formatter': 'date_and_level',
+        },
+        'console_stdout': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stdout',
             'formatter': 'date_and_level',
         },
         'mail_admins': {
@@ -636,17 +642,17 @@ LOGGING = {
     },
     'loggers': {
         'django.request': {
-            'handlers': ['mail_admins', 'console',],
+            'handlers': ['mail_admins', 'console', 'console_stdout'],
             'level': 'ERROR',
             'propagate': True,
         },
         'oioioi': {
-            'handlers': ['console', 'emit_notification'],
+            'handlers': ['console', 'console_stdout', 'emit_notification'],
             'level': 'DEBUG',
             'propagate': True,
         },
         'celery': {
-            'handlers': ['console', 'emit_notification'],
+            'handlers': ['console', 'console_stdout', 'emit_notification'],
             'level': 'DEBUG',
             'propagate': True,
         }
