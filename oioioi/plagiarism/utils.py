@@ -106,7 +106,7 @@ class MossClient(object):
         return url
 
 
-def submit_and_get_url(client, submission_collector):
+def submit_and_get_url(client, submission_collector, multiple_contests=False):
     submission_list = submission_collector.collect_list()
     if not submission_list:
         raise MossException(_("Can't make a query with no submissions."))
@@ -120,6 +120,8 @@ def submit_and_get_url(client, submission_collector):
                 + '_'
                 + str(s.submission_id)
             )
+            if multiple_contests:
+                display_name += '_' + str(s.contest_id)
             dest = os.path.join(tmpdir, display_name)
             submission_collector.get_submission_source(dest, s.source_file)
             client.add_file(dest, display_name)

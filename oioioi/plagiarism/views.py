@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
 from oioioi.base.permissions import enforce_condition
+from oioioi.contests.models import ProblemInstance
 from oioioi.contests.utils import contest_exists, is_contest_admin
 from oioioi.exportszu.utils import SubmissionsWithUserDataCollector
 from oioioi.plagiarism.forms import MossSubmitForm
@@ -9,6 +10,8 @@ from oioioi.plagiarism.utils import MossClient, MossException, submit_and_get_ur
 
 
 def _make_moss_form(request, *args, **kwargs):
+    tpc = getattr(request.contest, 'talent_parent_contest', None)
+    kwargs['has_parent_contest'] = tpc and tpc.parent_contest
     form = MossSubmitForm(request.contest.probleminstance_set, *args, **kwargs)
     return form
 
@@ -22,15 +25,26 @@ def moss_submit(request):
             language = form.cleaned_data['language']
             only_final = form.cleaned_data['only_final']
             userid = form.cleaned_data['userid']
+            pi_list = [problem_instance]
+            if form.cleaned_data['parent_contest']:
+                tpc = getattr(request.contest, 'talent_parent_contest', None)
+                if tpc:
+                    parent_pi = ProblemInstance.objects.filter(
+                        problem_id=problem_instance.problem_id,
+                        contest_id=tpc.parent_contest_id,
+                    ).first()
+                    if parent_pi:
+                        pi_list.append(parent_pi)
+            pi_num = len(pi_list)
             collector = SubmissionsWithUserDataCollector(
-                request.contest,
-                problem_instance=problem_instance,
+                request.contest if pi_num == 1 else None,
+                problem_instance=pi_list,
                 language=language,
                 only_final=only_final,
             )
             client = MossClient(userid, language)
             try:
-                url = submit_and_get_url(client, collector)
+                url = submit_and_get_url(client, collector, pi_num > 1)
             except MossException as e:
                 return TemplateResponse(
                     request,

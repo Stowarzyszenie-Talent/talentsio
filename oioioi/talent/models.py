@@ -33,3 +33,20 @@ class TalentRegistration(models.Model):
     
     def __str__(self):
         return str("{} {} {}".format(self.user, _("inside"), self.contest))
+
+class TalentParentContest(models.Model):
+    contest = models.OneToOneField(
+        Contest,
+        verbose_name=_("contest"),
+        related_name='talent_parent_contest',
+        on_delete=models.CASCADE,
+    )
+    parent_contest = models.ForeignKey(
+        Contest,
+        verbose_name=_("parent contest"),
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    class Meta(object):
+        verbose_name = _("Parent contest")

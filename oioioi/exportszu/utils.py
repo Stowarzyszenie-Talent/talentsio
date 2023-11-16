@@ -18,6 +18,7 @@ from oioioi.programs.utils import get_extension
 
 class SubmissionData(object):
     submission_id = None
+    contest_id = None
     user_id = None
     username = None
     first_name = None
@@ -33,8 +34,7 @@ class SubmissionData(object):
 
 class SubmissionsWithUserDataCollector(object):
     """
-    Collects submissions with some associated data in specific contest with
-    some filtering.
+    Collects submissions with some associated data with some filtering.
 
     We want the user of collector objects to know nothing (or very little)
     about the database, controller logic etc. It is responsibility of
@@ -42,11 +42,13 @@ class SubmissionsWithUserDataCollector(object):
     """
 
     def __init__(
-        self, contest, round=None, problem_instance=None, language=None, only_final=True
+        self, contest=None, round=None, problem_instance=[], language=None, only_final=True
     ):
         self.contest = contest
         self.round = round
-        self.problem_instance = problem_instance
+        if type(problem_instance) != list:
+            problem_instance = [problem_instance]
+        self.problem_instance_list = problem_instance
 
         if language:
             exts = getattr(settings, 'SUBMITTABLE_EXTENSIONS', {})
@@ -60,19 +62,18 @@ class SubmissionsWithUserDataCollector(object):
         self.filetracker = get_client()
 
     def get_contest_id(self):
-        return self.contest.id
+        return self.contest.id if self.contest else None
 
     def collect_list(self):
-        ccontroller = self.contest.controller
         q_expressions = Q(user__isnull=False)
 
         if self.round:
             q_expressions &= Q(problem_instance__round=self.round)
-        else:
+        elif self.contest:
             q_expressions &= Q(problem_instance__contest=self.contest)
 
-        if self.problem_instance:
-            q_expressions &= Q(problem_instance=self.problem_instance)
+        if len(self.problem_instance_list):
+            q_expressions &= Q(problem_instance__in=self.problem_instance_list)
 
         if self.lang_exts:
             q_expr_langs = Q()
@@ -89,6 +90,7 @@ class SubmissionsWithUserDataCollector(object):
         for s in psubmissions:
             data = SubmissionData()
             data.submission_id = s.id
+            data.contest_id = s.problem_instance.contest_id
             data.user_id = s.user_id
             data.username = s.user.username
             data.first_name = s.user.first_name
@@ -103,7 +105,7 @@ class SubmissionsWithUserDataCollector(object):
             try:
                 registration = (
                     Participant.objects.select_related()
-                    .get(contest_id=self.contest.id, user=s.user)
+                    .get(contest_id=self.get_contest_id(), user=s.user)
                     .registration_model
                 )
                 try:

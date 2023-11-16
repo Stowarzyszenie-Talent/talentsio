@@ -24,6 +24,12 @@ class MossSubmitForm(forms.Form):
     only_final = forms.BooleanField(
         label=_("Only final submissions"), required=False, initial=True
     )
+    parent_contest = forms.BooleanField(
+        label=_("Include submissions from parent contest"),
+        required=False,
+        initial=False,
+        help_text=_("This does work with 'only final'.")
+    )
     userid = forms.IntegerField(
         label=_("MOSS user ID"),
         required=True,
@@ -32,5 +38,7 @@ class MossSubmitForm(forms.Form):
     )
 
     def __init__(self, problem_instances, *args, **kwargs):
+        has_parent_contest = kwargs.pop('has_parent_contest', False)
         super(MossSubmitForm, self).__init__(*args, **kwargs)
+        self.fields['parent_contest'].disabled = not has_parent_contest
         self.fields['problem_instance'].queryset = problem_instances

@@ -3,10 +3,16 @@ from django.contrib import admin, messages
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from oioioi.base.forms import AlwaysChangedModelForm
 from oioioi.base.permissions import make_request_condition
 from oioioi.base.utils import make_html_link
-from oioioi.contests.admin import contest_site, contest_admin_menu_registry
-from oioioi.talent.models import TalentRegistration
+from oioioi.contests.admin import (
+    contest_site,
+    contest_admin_menu_registry,
+    ContestAdmin,
+)
+from oioioi.contests.utils import is_contest_admin
+from oioioi.talent.models import TalentParentContest, TalentRegistration
 from oioioi.talent.utils import set_talent_participant
 
 
@@ -86,3 +92,28 @@ contest_admin_menu_registry.register(
     condition=is_talent_registration_contest,
     order=45,
 )
+
+class TalentParentContestAdmin(admin.TabularInline):
+    model = TalentParentContest
+    form = AlwaysChangedModelForm
+    extra = 0
+    fk_name = 'contest'
+    category = _("Advanced")
+
+    def has_add_permission(self, request, obj=None):
+        return is_contest_admin(request)
+
+    def has_change_permission(self, request, obj=None):
+        return is_contest_admin(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return is_contest_admin(request)
+
+
+class TalentParentContestAdminMixin(object):
+    def __init__(self, *args, **kwargs):
+        super(TalentParentContestAdminMixin, self).__init__(*args, **kwargs)
+        self.inlines = tuple(self.inlines) + (TalentParentContestAdmin,)
+
+
+ContestAdmin.mix_in(TalentParentContestAdminMixin)
