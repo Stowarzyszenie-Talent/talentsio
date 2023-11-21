@@ -1,9 +1,13 @@
+from io import BytesIO
+
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.test.utils import override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from oioioi.base.tests import TestCase
+from oioioi.base.utils.pdf import extract_text_from_pdf
 from oioioi.contests.current_contest import ContestMode
 from oioioi.participants.models import Participant
 from oioioi.phase.models import Phase
@@ -16,7 +20,7 @@ class TestTalent(TestCase):
     def setUp(self):
         call_command('talent_camp_init')
 
-    def register(self, username, group):
+    def register(self, username, group, room='Rodzinny'):
         count = User.objects.count()
         response = self.client.post(reverse('sign-up'), {
             'username': username,
@@ -26,6 +30,7 @@ class TestTalent(TestCase):
             'password1': 'a',
             'password2': 'a',
             'group': group,
+            'room': room,
             'preferred_language': '',
             'terms_accepted': 'on',
             'captcha_0': 'bajo_jajo',
@@ -36,9 +41,9 @@ class TestTalent(TestCase):
         self.assertContains(response, "Sign-up successful")
         self.assertEqual(count+1, User.objects.count())
         if group != 'brak':
-            self.assertEqual(TalentRegistration.objects.get(
-                user__username=username,
-            ).contest_id, group)
+            tr = TalentRegistration.objects.get(user__username=username)
+            self.assertEqual(tr.contest_id, group)
+            self.assertEqual(tr.room, room)
         else:
             self.assertEqual(TalentRegistration.objects.filter(
                 user__username=username,
@@ -60,7 +65,7 @@ class TestTalent(TestCase):
 
     # ids: e,d,a; closed: e,d; supervised: a,d; phased: a
     def test_registrations(self):
-        self.register('a', 'a')
+        self.register('a', 'a', room='69')
         self.assertMemberships('a')
         self.assertParticipants('a')
         self.del_user()
@@ -115,6 +120,27 @@ class TestTalent(TestCase):
         for i in ('d', 'e'):
             resp = self.client.get(self.tr_admin_url(i))
             self.assertNotContains(resp, "test user")
+
+    def test_attendance_list(self):
+        self.register('a', 'a', room='69')
+        self.assertTrue(self.client.login(username="admin"))
+        url = self.tr_admin_url('a')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Make attendance list")
+        att_list_url = reverse(
+            'make_att_list_pdf',
+            kwargs={'contest_id': 'a',},
+        )
+        resp = self.client.get(att_list_url)
+        self.assertEqual(resp.status_code, 200)
+        pdf_data = bytes()
+        for c in resp.streaming_content:
+            pdf_data += c
+        pdf_text = extract_text_from_pdf(BytesIO(pdf_data))[0].decode('utf-8')
+        curr_date = timezone.now().strftime("%d.%m.%Y")
+        for s in ['Grupa A - ' + curr_date, '1.', 'user', 'test', '69']:
+            self.assertIn(s, pdf_text)
 
     def test_moving(self):
         self.register('a', 'a')

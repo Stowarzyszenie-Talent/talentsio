@@ -52,9 +52,9 @@ class RegistrationView(DefaultRegistrationView):
             from oioioi.talent.models import TalentRegistrationSwitch
             if TalentRegistrationSwitch.objects.filter(status=True).exists():
                 group = data['group']
-                if not group == "brak":
+                if group != "brak":
                     from oioioi.talent.utils import set_talent_participant
-                    set_talent_participant(user, group)
+                    set_talent_participant(user, group, data['room'])
 
         registration_profile = RegistrationProfile.objects.create_profile(user)
         signals.user_registered.send(sender=self.__class__, user=user, request=request)

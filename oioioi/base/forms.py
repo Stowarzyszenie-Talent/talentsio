@@ -199,7 +199,12 @@ class RegistrationFormWithNames(RegistrationForm):
                     choices=settings.TALENT_GROUP_FORM_CHOICES,
                     label=_("Contest group"),
                 )
-                tmp_fields = tmp_fields + [ ('group', group_field), ]
+                room_field = forms.CharField(label=_("Room number or name"))
+
+                tmp_fields = tmp_fields + [
+                    ('group', group_field),
+                    ('room', room_field),
+                ]
         self.fields = OrderedDict(tmp_fields)
         self.fields.update(extra)
         self.fields.update(

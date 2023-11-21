@@ -28,30 +28,26 @@ def move_wrapper(modeladmin, request, queryset):
 
 
 class TalentRegistrationAdmin(admin.ModelAdmin):
-    list_display = ['user_full_name',]
+    change_list_template = 'admin/talent/talent_registration_changelist.html'
+    list_display = ['user_full_name', 'room']
     ordering = ['user__last_name',]
     search_fields = ['user__username', 'user__last_name',]
+    readonly_fields = ['user', 'contest',]
 
     def has_add_permission(self, request):
         return False
 
     def has_change_permission(self, request, obj=None):
-        return False
+        return is_contest_admin(request)
 
     def has_delete_permission(self, request, obj=None):
         return False
 
-    # Copied from participants/admin.py
+    # Inspired by participants/admin.py
     def user_full_name(self, instance):
         if not instance.user:
             return ''
-        return make_html_link(
-            reverse(
-                'user_info',
-                kwargs={'contest_id': instance.contest_id, 'user_id': instance.user_id},
-            ),
-            instance.user.get_full_name(),
-        )
+        return instance.user.get_full_name(),
 
     user_full_name.short_description = _("User name")
     user_full_name.admin_order_field = 'user__last_name'

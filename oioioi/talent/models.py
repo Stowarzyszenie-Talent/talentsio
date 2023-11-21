@@ -25,7 +25,12 @@ class TalentRegistration(models.Model):
         verbose_name=_("contest"),
         on_delete=models.CASCADE,
     )
-    
+    room = models.CharField(
+        max_length=15,
+        verbose_name=_("Room number or name"),
+        null=True,
+    )
+
     class Meta(object):
         verbose_name = _("Talent registration")
         verbose_name_plural = _("Talent registrations")

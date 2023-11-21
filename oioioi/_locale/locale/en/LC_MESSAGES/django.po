@@ -8380,3 +8380,9 @@ msgstr "Talent registrations"
 
 msgid "Move to %(contest_name)s"
 msgstr "Move to %(contest_name)s"
+
+msgid "Room number or name"
+msgstr "Room number or name"
+
+msgid "Make attendance list"
+msgstr "Make attendance list"

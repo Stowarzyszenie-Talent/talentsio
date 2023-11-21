@@ -13,7 +13,7 @@ def get_group(cid):
     ).first()
 
 
-def set_talent_participant(user, cid):
+def set_talent_participant(user, cid, room=None):
     with transaction.atomic():
         if cid not in settings.TALENT_CONTEST_NAMES:
             raise SuspiciousOperation
@@ -33,9 +33,12 @@ def set_talent_participant(user, cid):
             # as we want to leave them in the ranking (?) etc.
             # Also, the user should remain able to see that contest.
 
+        update_dict = {'contest_id': cid}
+        if not (room is None):
+            update_dict['room'] = room
         TalentRegistration.objects.update_or_create(
             user=user,
-            defaults={'contest_id': cid},
+            defaults=update_dict,
         )
         # Add to supervision group
         if cid in settings.TALENT_SUPERVISED_IDS:
