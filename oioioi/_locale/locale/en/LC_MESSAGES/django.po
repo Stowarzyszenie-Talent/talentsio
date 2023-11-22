@@ -8389,3 +8389,18 @@ msgstr "Make attendance list"
 
 msgid "File to print"
 msgstr "File to print"
+
+msgid "My camp data"
+msgstr "My camp data"
+
+msgid "Camp data"
+msgstr "Camp data"
+
+msgid "Current contest group:"
+msgstr "Current contest group:"
+
+msgid "Successfully changed!"
+msgstr "Successfully changed!"
+
+msgid "Nothing has been changed."
+msgstr "Nothing has been changed."

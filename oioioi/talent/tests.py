@@ -142,6 +142,52 @@ class TestTalent(TestCase):
         for s in ['Grupa A - ' + curr_date, '1.', 'user', 'test', '69']:
             self.assertIn(s, pdf_text)
 
+    def test_camp_data(self):
+        url = reverse('talent_camp_data', kwargs={'contest_id': 'a'})
+        resp = self.client.get(url, follow=True)
+        self.assertContains(resp, "Log in")
+
+        self.assertTrue(self.client.login(username="admin"))
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 403)
+
+        self.client.logout()
+        self.register('a', 'a', room='69')
+        self.assertTrue(self.client.login(username="a"))
+        resp = self.client.get(reverse('index'))
+        self.assertContains(resp, "My camp data") # In account menu
+
+        resp = self.client.get(url)
+        self.assertContains(resp, "Camp data")
+        self.assertRegex(
+            resp.content.decode('utf-8').replace('\n', ''),
+            r'Current contest group: *<a href="?/c/a/"?>Grupa A</a>',
+        )
+        self.assertContains(resp, "Room number or name")
+        self.assertContains(resp, "69")
+
+        resp = self.client.post(url, data={'room': '69'}, follow=True)
+        self.assertContains(resp, "Room number or name")
+        self.assertNotContains(resp, "This field is required")
+        self.assertContains(resp, "69")
+        self.assertContains(resp, "Nothing has been changed.")
+
+        resp = self.client.post(url, data={'room': ''}, follow=True)
+        self.assertNotContains(resp, "Successfully changed!")
+        self.assertContains(resp, "Room number or name")
+        self.assertContains(resp, "This field is required")
+        resp = self.client.get(url)
+        self.assertContains(resp, "Room number or name")
+        self.assertNotContains(resp, "This field is required")
+        self.assertContains(resp, "69")
+
+        resp = self.client.post(url, data={'room': '70'}, follow=True)
+        self.assertContains(resp, "Room number or name")
+        self.assertNotContains(resp, "This field is required")
+        self.assertContains(resp, "70")
+        self.assertContains(resp, "Successfully changed!")
+
+
     def test_moving(self):
         self.register('a', 'a')
         self.move('e')

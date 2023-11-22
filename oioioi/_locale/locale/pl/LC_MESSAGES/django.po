@@ -9871,6 +9871,21 @@ msgstr "Wygeneruj listę obecności"
 msgid "File to print"
 msgstr "Plik do wydruku"
 
+msgid "My camp data"
+msgstr "Moje dane obozowe"
+
+msgid "Camp data"
+msgstr "Dane obozowe"
+
+msgid "Current contest group:"
+msgstr "Aktualna grupa kontestowa:"
+
+msgid "Successfully changed!"
+msgstr "Pomyślnie zmieniono!"
+
+msgid "Nothing has been changed."
+msgstr "Nic nie zostało zmienione."
+
 #: sio fixes
 msgid "unknown"
 msgstr "nieznany"

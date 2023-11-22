@@ -9,4 +9,8 @@ contest_patterns = [
         views.make_att_list_pdf,
         name='make_att_list_pdf',
     ),
+    re_path(r'talent_camp_data/',
+        views.talent_camp_data_view,
+        name='talent_camp_data',
+    )
 ]

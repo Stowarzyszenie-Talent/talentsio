@@ -1,0 +1,28 @@
+{% extends "base-with-menu.html" %}
+{% load i18n %}
+
+{% block scripts %}
+{{ block.super }}
+{{ form.media }}
+{% endblock %}
+
+{% block title %}{% trans "My camp data" %}{% endblock %}
+
+{% block main-content %}
+<h1>{% trans "Camp data" %}</h1>
+{% with talent_registration.contest as c %}
+    <p>
+        {% trans "Current contest group:" %}
+        <a href={% url 'default_contest_view' contest_id=c.id %}>{{ c }}</a>
+    </p>
+{% endwith %}
+<form method="post">
+    {% csrf_token %}
+    {% include "ingredients/form.html" %}
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">
+            {% trans "Save" %}
+        </button>
+    </div>
+</form>
+{% endblock %}
