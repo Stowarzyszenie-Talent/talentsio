@@ -25,6 +25,7 @@ INSTALLED_APPS = (
     "oioioi.phase",
     "oioioi.supervision",
     "oioioi.talent",
+    "oioioi.printproxy",
 ) + INSTALLED_APPS
 
 TEMPLATES[0]['APP_DIRS'] = False

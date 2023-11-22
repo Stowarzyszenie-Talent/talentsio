@@ -9868,6 +9868,9 @@ msgstr "Numer lub nazwa pokoju"
 msgid "Make attendance list"
 msgstr "Wygeneruj listę obecności"
 
+msgid "File to print"
+msgstr "Plik do wydruku"
+
 #: sio fixes
 msgid "unknown"
 msgstr "nieznany"

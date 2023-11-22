@@ -8386,3 +8386,6 @@ msgstr "Room number or name"
 
 msgid "Make attendance list"
 msgstr "Make attendance list"
+
+msgid "File to print"
+msgstr "File to print"
