@@ -178,6 +178,7 @@ class TestExclusiveContestsAdmin(TestCase, ContestIdViewCheckMixin):
             ('prize_set', 0, 0, 0, 1000),
             ('teamsconfig', 0, 0, 0, 1),
             ('problemstatementconfig', 0, 0, 0, 1),
+            ('talent_parent_contest', 0, 0, 0, 1),
             ('rankingvisibilityconfig', 0, 0, 0, 1),
             ('registrationavailabilityconfig', 0, 0, 0, 1),
             ('balloonsdeliveryaccessdata', 0, 0, 0, 1),
