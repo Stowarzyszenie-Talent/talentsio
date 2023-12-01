@@ -205,16 +205,15 @@ buildPythonPackage rec {
   # as there we don't use the local sioworkers backend.
   SIOWORKERS_SANDBOXES_URL = "https://otsrv.net/sandboxes/";
 
-  # This is just so pytest is available in nix shell and can be manually run.
-  nativeBuildInputs = [ poetry-core pytest (
+  passthru.o-texlive = (
     pkgs.texlive.combine { inherit (pkgs.texlive)
       scheme-small collection-langpolish collection-fontsrecommended
       pst-barcode tex-gyre marginnote pstricks auto-pst-pdf catchfile pst-pdf
-      pslatex a4wide fancyhdr luatex85 preview environ;
-    }) pkgs.sox pkgs.flite ];
+      pslatex a4wide fancyhdr luatex85 preview environ zref;
+  });
 
-  # This is only required so that tests can be run from a devshell.
-  # TODO: Add texlive to oioioi services in module.nix
+  # This just for running tests in `nix develop`.
+  nativeBuildInputs = [ poetry-core pytest pkgs.sox pkgs.flite passthru.o-texlive ];
   buildInputs = with pkgs; [ gcc glibc.static fpc ];
 
   propagatedBuildInputs = [

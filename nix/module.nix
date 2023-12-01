@@ -380,7 +380,13 @@ in
 
       systemd.services =
         let
-          mkSioProcess = { name, requiresDatabase ? false, requiresFiletracker ? false, ... }@x:
+          mkSioProcess = {
+            name,
+            requiresDatabase ? false,
+            requiresFiletracker ? false,
+            requiresTexlive ? false,
+            ...
+          }@x:
             let
               extraRequires = (lib.optionals requiresDatabase [ "postgresql.service" "sio2-migrate.service" ]) ++ (lib.optional requiresFiletracker "filetracker.service") ++ [ "sio2-rabbitmq.service" ];
             in
@@ -398,6 +404,8 @@ in
                 inherit PYTHONPATH;
                 FILETRACKER_FILE_MODE = "770";
               } // (x.environment or { });
+
+              path = (x.path or []) ++ (lib.optional requiresTexlive package.o-texlive);
 
               serviceConfig = {
                 Type = "simple";
@@ -423,7 +431,7 @@ in
                 ProtectKernelLogs = true;
                 PrivateDevices = true;
               } // (builtins.removeAttrs (x.serviceConfig or { }) [ "ReadWritePaths" "SupplementaryGroups" ]);
-            } // (builtins.removeAttrs x [ "name" "requiresDatabase" "requiresFiletracker" "requires" "after" "serviceConfig" "environment" ]);
+            } // (builtins.removeAttrs x [ "name" "requiresDatabase" "requiresFiletracker" "requiresTexlive" "requires" "after" "serviceConfig" "environment" ]);
         in
         {
           # The sioworker service has to be modified this way so it has access to the shared filetracker cache.
@@ -497,6 +505,7 @@ in
             name = "uwsgi";
             requiresFiletracker = true;
             requiresDatabase = true;
+            requiresTexlive = true;
 
             restartTriggers = [ script ];
             reloadIfChanged = true;
@@ -578,6 +587,7 @@ in
             name = "unpackmgr";
             requiresFiletracker = true;
             requiresDatabase = true;
+            requiresTexlive = true; # let's pretend that we support sinol makefiles
 
             wants = [ "evalmgr.service" ];
 
