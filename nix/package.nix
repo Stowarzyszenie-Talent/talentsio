@@ -34,7 +34,7 @@
 , pytest
 , pytest-metadata
 , pytest-django
-#, pytest-html
+, pytest-html
 , pytest-xdist
 , pytest-cov
 , requests
@@ -241,7 +241,7 @@ buildPythonPackage rec {
     pytest
     pytest-metadata
     pytest-django
-#    pytest-html
+    pytest-html
     pytest-xdist
     pytest-cov
     requests
