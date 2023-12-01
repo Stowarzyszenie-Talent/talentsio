@@ -1,6 +1,6 @@
 {
   description = "The main component of the SIO2 project";
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/release-23.11";
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.filetracker = {
     url = "github:Stowarzyszenie-Talent/filetracker";
