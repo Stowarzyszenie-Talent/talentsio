@@ -10,9 +10,6 @@
 , libsass
 , setuptools
 , setuptools_scm
-, vine
-, billiard
-, kombu
 , watchdog
 , supervisor
 
@@ -53,6 +50,7 @@
 , raven
 , unidecode
 , sentry-sdk
+, fontawesomefree
 , filetracker
 , django-simple-captcha
 , phonenumbers
@@ -124,10 +122,6 @@ let
     "extension"
   ]));
 
-  o-sqlalchemy = overridePackage sqlalchemy {
-    version = "1.4.48";
-    hash = "sha256-tHvChwltmJoIOM6W99jpZpFKJNqHftQadTHUS1XNuN8=";
-  };
   python-monkey-business = simplePackage {
     name = "python-monkey-business";
     version = "1.0.0";
@@ -136,49 +130,6 @@ let
     propagatedBuildInputs = [
       six
     ];
-  };
-  o-vine = overridePackage vine {
-    version = "1.3.0";
-    hash = "sha256-Ez7m16kBbxd93q8ZHB9YQhodzG7ppCxYs0vtQOHSzYc=";
-
-    pythonImportsCheck = [ "vine" "vine.five" ];
-  };
-  o-billiard = overridePackage billiard {
-    version = "3.6.4.0";
-    hash = "sha256-KZ3lqNoop4PVGxl9SWvvTxWV3QI6k6T1nd4Yhq6QVUc=";
-  };
-  amqp = simplePackage {
-    name = "amqp";
-    version = "2.6.1";
-    hash = "sha256-cM2xBihGj/FOV+wvdRx6qeSOfjZRz9YtQxITwMTljyE=";
-
-    checkPhase = "";
-    doCheck = false;
-    postPatch = ''
-      rm requirements/test.txt
-      sed -i "s/reqs('test.txt')/[]/" setup.py
-    '';
-
-    propagatedBuildInputs = [ o-vine ];
-  };
-  o-kombu = overridePackage kombu {
-    version = "4.6.11";
-    hash = "sha256-yhtF+qyMCxhJPQKoVxeS88QCkc8rzx9Vr+09jzqnunQ=";
-
-    disabledTestPaths = [
-      "t/unit/transport/test_SQS.py"
-      "t/unit/transport/test_azureservicebus.py"
-      "t/unit/transport/test_azureservicebus.py"
-      "t/unit/transport/test_azureservicebus.py"
-      "t/unit/transport/test_azureservicebus.py"
-      "t/unit/transport/test_azureservicebus.py"
-      "t/unit/transport/test_azureservicebus.py"
-      "t/unit/transport/test_azureservicebus.py"
-      "t/unit/transport/test_filesystem.py"
-      "t/unit/transport/test_filesystem.py"
-    ];
-
-    propagatedBuildInputs = [ amqp ];
   };
   o-django-registration-redux = simplePackage {
     name = "django-registration-redux";
@@ -192,29 +143,6 @@ let
       pytest-django
     ];
   };
-  o-celery = overridePackage celery {
-    version = "4.4.7";
-    hash = "sha256-0iCxOo7VfHgUms+CwAZ4U1YHGESv4LJwEqSZHUQCb58=";
-
-    patches = [ ];
-    doCheck = false;
-    postPatch = ''
-      sed -i "s/pytz>dev/pytz/" requirements/default.txt
-    '';
-
-    disabledTestPaths = [
-      "t/unit/backends/test_mongodb.py"
-      "t/unit/concurrency/test_pool.py"
-      "t/unit/events/test_cursesmon.py"
-      "t/unit/security/test_security.py"
-      "t/unit/tasks/test_tasks.py"
-      "t/unit/backends/test_filesystem.py"
-      "t/unit/backends/test_dynamodb.py"
-      "t/unit/backends/test_cassandra.py"
-    ];
-
-    propagatedBuildInputs = [ pytz o-vine o-billiard o-kombu ];
-  };
   o-dj-pagination = simplePackage {
     name = "dj-pagination";
     version = "2.5.0";
@@ -227,21 +155,6 @@ let
   o-mistune = overridePackage mistune {
     version = "0.8.4";
     hash = "sha256-WaNCnbU8ULXGvMigf4hIywDX3IvbQxpKtBkg0gHUdW4=";
-  };
-  o-fontawesomefree = simplePackage rec {
-    name = "fontawesomefree";
-    version = "6.4.0";
-    format = "wheel";
-
-    dontStrip = true;
-
-    src = fetchPypi {
-      pname = name;
-      inherit version format;
-      dist = "py3";
-      python = "py3";
-      hash = "sha256-4S7a1xts9pk/x8aupjZ+Ex8vJHtkNfrKmbEjKbrNKyc=";
-    };
   };
   o-django-nested-admin = simplePackage {
     name = "django-nested-admin";
@@ -282,8 +195,7 @@ buildPythonPackage rec {
   };
 
   postPatch = ''
-    sed -i 's/"pytest-html/#"pytest-html/;
-            s/"django-supervisor.*$/"django-supervisor",/' setup.py
+    sed -i 's/"django-supervisor.*$/"django-supervisor",/' setup.py
   '';
 
   doCheck = false;
@@ -308,14 +220,14 @@ buildPythonPackage rec {
   propagatedBuildInputs = [
     django
     pytz
-    o-sqlalchemy
+    sqlalchemy
     beautifulsoup4
     pyyaml
     python-dateutil
     django-two-factor-auth
     django-formtools
     o-django-registration-redux
-    o-celery
+    celery
     coreapi
     o-dj-pagination
     django-compressor
@@ -345,7 +257,7 @@ buildPythonPackage rec {
     raven
     unidecode
     sentry-sdk
-    o-fontawesomefree
+    fontawesomefree
     o-django-nested-admin
     filetracker
     django-simple-captcha
