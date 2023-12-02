@@ -114,14 +114,16 @@ def submit_and_get_url(client, submission_collector, multiple_contests=False):
     try:
         for s in submission_list:
             display_name = (
-                (s.first_name[0] if s.first_name else '')
-                + (s.last_name[0] if s.last_name else '')
+                (s.last_name if s.last_name else '')
+                + '_'
+                + (s.first_name if s.first_name else '')
+                + '_'
                 + str(s.user_id)
                 + '_'
                 + str(s.submission_id)
             )
             if multiple_contests:
-                display_name += '_' + str(s.contest_id)
+                display_name = '[' + str(s.contest_id) + ']' + display_name
             dest = os.path.join(tmpdir, display_name)
             submission_collector.get_submission_source(dest, s.source_file)
             client.add_file(dest, display_name)

@@ -62,7 +62,7 @@ class TestMossSubmitCommand(TestCase):
         self.assertEqual(mock_add_file.call_count, 2)
 
         display_names = {call_args[0][1] for call_args in mock_add_file.call_args_list}
-        self.assertEqual(display_names, {"TU1001_1", "TU1001_2"})
+        self.assertEqual(display_names, {"User_Test_1001_1", "User_Test_1001_2"})
 
 
 class TestMossSubmitView(TestCase):
