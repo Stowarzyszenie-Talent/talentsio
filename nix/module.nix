@@ -46,6 +46,7 @@ let
     NOTIFICATIONS_SERVER_URL = "http${sIfSSL}://${cfg.domain}/";
 
     MATHJAX_LOCATION = "";
+    CPPREF_URL = "/cppreference/en/Main_Page.html";
 
     PUBLIC_ROOT_URL = "http${sIfSSL}://${cfg.domain}";
 
@@ -275,6 +276,16 @@ in
       environment.systemPackages = [ managePy ];
 
       services.nginx =
+        let
+          static_cache_cfg = ''
+            gzip on;
+            gzip_vary on;
+            gzip_min_length 1024;
+            gzip_proxied expired no-cache no-store private auth;
+            gzip_types text/html text/plain text/css application/javascript text/javascript;
+            expires 1d;
+          '';
+        in
         if cfg.nginx != null then {
           enable = lib.mkDefault true;
           virtualHosts."oioioi" = {
@@ -290,16 +301,14 @@ in
               '';
             };
 
+            locations."/cppreference/" = {
+              alias = "${pkgs.cppreference-doc}/share/cppreference/doc/html/";
+              extraConfig = static_cache_cfg;
+            };
+
             locations."/static/" = {
               alias = "/var/lib/sio2/static/";
-              extraConfig = ''
-                gzip on;
-                gzip_vary on;
-                gzip_min_length 1024;
-                gzip_proxied expired no-cache no-store private auth;
-                gzip_types text/plain text/css application/javascript text/javascript;
-                expires 1d;
-              '';
+              extraConfig = static_cache_cfg;
             };
 
             locations."/socket.io/".extraConfig = ''

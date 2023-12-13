@@ -13,7 +13,8 @@
 #EVALMGR_CONCURRENCY = 1
 #UNPACKMGR_CONCURRENCY = 1
 
-#MATHJAX_LOCATION = "" # URL; "" disabled including it
+#MATHJAX_LOCATION = "" # URL; "" disables including it
+#CPPREF_URL = "" # "" disables showing it, managed by nix
 
 #ADMINS = [('Your Name', 'youremail@example.com'),]
 #MANAGERS = ADMINS

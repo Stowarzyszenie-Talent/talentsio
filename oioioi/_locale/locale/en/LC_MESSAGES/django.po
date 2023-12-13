@@ -8404,3 +8404,6 @@ msgstr "Successfully changed!"
 
 msgid "Nothing has been changed."
 msgstr "Nothing has been changed."
+
+msgid "C++ reference"
+msgstr "C++ reference"

@@ -1,3 +1,6 @@
+from datetime import datetime
+
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.loader import get_template
@@ -12,10 +15,35 @@ from oioioi.base.permissions import (
     make_request_condition,
     not_anonymous,
 )
+from oioioi.base.navbar_links import navbar_links_registry
 from oioioi.base.utils.pdf import generate_pdf
+from oioioi.contests.attachment_registration import attachment_registry
 from oioioi.contests.utils import contest_exists, is_contest_admin
 from oioioi.talent.forms import TalentRegistrationRoomForm
 from oioioi.talent.models import TalentRegistration
+
+
+if settings.CPPREF_URL != "":
+    navbar_links_registry.register(
+        name='cppreference',
+        text=_("C++ reference"),
+        url_generator=lambda request: settings.CPPREF_URL,
+        order=440, # last
+    )
+
+
+@attachment_registry.register
+def get_cppreference(request):
+    if settings.CPPREF_URL == "":
+        return []
+    return [{
+        'category': None,
+        'name': 'cppreference',
+        'description': _("C++ reference"),
+        'link': settings.CPPREF_URL,
+        'pub_date': datetime.utcfromtimestamp(0),
+    }]
+
 
 @enforce_condition(contest_exists & is_contest_admin)
 def make_att_list_pdf(request):

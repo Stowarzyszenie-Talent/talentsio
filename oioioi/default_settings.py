@@ -886,3 +886,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 SANDBOXES_MANIFEST = 'https://otsrv.net/sandboxes/Manifest'
 
+CPPREF_URL = "" # "" disables showing it
