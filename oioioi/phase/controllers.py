@@ -11,7 +11,7 @@ from oioioi.contests.models import (
 from oioioi.contests.scores import IntegerScore
 from oioioi.phase.models import (
     Phase,
-    UserCleanResultForProblem, 
+    UserPhaseResultForProblem,
     UserFirstPhaseResultForProblem,
 )
 from oioioi.rankings.controllers import DefaultRankingController
@@ -31,7 +31,7 @@ class PhaseMixinForContestController(object):
         # Because of mixins there isn't really a better place for this
         user = result.user
         pi = result.problem_instance
-        clean_result, _ = UserCleanResultForProblem.objects.select_for_update(
+        phase_result, _ = UserPhaseResultForProblem.objects.select_for_update(
         ).get_or_create(user=user, problem_instance=pi)
         first_phase_result, _ = UserFirstPhaseResultForProblem.objects. \
             select_for_update().get_or_create(user=user, problem_instance=pi)
@@ -72,18 +72,18 @@ class PhaseMixinForContestController(object):
                 submission=last_submission, status='ACTIVE', kind='NORMAL'
             ).last()
 
-            result.score = IntegerScore(total // 100)
+            result.score = IntegerScore(highest)
             result.status = last_submission.status
             result.submission_report = report
-            clean_result.score = IntegerScore(highest)
+            phase_result.score = IntegerScore(total // 100)
         else:
             result.score = None
             result.status = None
             result.submission_report = None
-            clean_result.score = None
+            phase_result.score = None
 
         result.save()
-        clean_result.save()
+        phase_result.save()
         first_phase_result.save()
 
 
@@ -94,10 +94,10 @@ class PhaseRankingController(DefaultRankingController):
     description = _("Talent's phase ranking")
     RANKING_TYPES = ['default', 'first', 'clean',] # [0] needs to be the default
     BASE_QUERYSETS = {
-        'default': UserResultForProblem.objects.all(
-            ).select_related('submission_report'),
+        'default': UserPhaseResultForProblem.objects.all(),
         'first': UserFirstPhaseResultForProblem.objects.all(),
-        'clean': UserCleanResultForProblem.objects.all(),
+        'clean': UserResultForProblem.objects.all(
+            ).select_related('submission_report'),
     }
     TYPE_NAMES = {
         'default': _("Default"),

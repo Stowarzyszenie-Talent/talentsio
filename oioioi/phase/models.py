@@ -23,7 +23,7 @@ class Phase(models.Model):
 
 
 # These are only for rankings and the submission_report field is "optional"
-class UserCleanResultForProblem(models.Model):
+class UserPhaseResultForProblem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     problem_instance = models.ForeignKey(ProblemInstance, on_delete=models.CASCADE)
     score = ScoreField(blank=True, null=True)
