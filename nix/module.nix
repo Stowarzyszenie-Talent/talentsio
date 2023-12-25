@@ -351,6 +351,16 @@ in
       # FIXME: This should be disabled if rabbitmqUrl is changed from the default
       services.rabbitmq = {
         enable = true;
+        configItems = {
+          "log.console" = "true";
+          "log.console.level" = "warning";
+          # NOTE: this is currently broken, as nixos passes an env var, which
+          # takes precedence over the config and sets logging to stdout-only
+          "log.file" = "/var/log/rabbitmq/rabbitmq.log";
+          "log.file.level" = "info";
+          "log.file.rotation.size" = builtins.toString (10*1024*1024); # 10 MiB
+          "log.file.rotation.count" = "5";
+        };
       };
 
       system.activationScripts = {
