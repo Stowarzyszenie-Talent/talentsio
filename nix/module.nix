@@ -152,10 +152,10 @@ in
       python = pkgs.python310;
       package = python.pkgs.callPackage ./package.nix { };
       uwsgi = pkgs.uwsgi.override { plugins = [ "python3" ]; python3 = python; };
-      # FIXME: This could probably be acomplished without this hackery
-      celery = builtins.head (builtins.filter (x: lib.getName x == "celery") package.propagatedBuildInputs);
+      celery = package.celery;
 
-      writePython310 = pkgs.writers.makePythonWriter python pkgs.python310Packages /* FIXME: build packages? */ pkgs.python310Packages;
+      # The second python310Packages are build packages
+      writePython310 = pkgs.writers.makePythonWriter python pkgs.python310Packages pkgs.python310Packages;
       writePython310Bin = name: writePython310 "/bin/${name}";
 
       finalSimpleSettings = baseSettings // (builtins.foldl' (a: b: a // b) { } (builtins.filter builtins.isAttrs cfg.extraSettings)) // {
@@ -342,9 +342,8 @@ in
         ensureUsers = [
           {
             name = "sio2";
-            ensurePermissions = {
-              "DATABASE sio2" = "ALL PRIVILEGES";
-            };
+            # "Grants the user ownership to a database with the same name."
+            ensureDBOwnership = true;
           }
         ];
       };

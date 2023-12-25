@@ -205,12 +205,15 @@ buildPythonPackage rec {
   # as there we don't use the local sioworkers backend.
   SIOWORKERS_SANDBOXES_URL = "https://otsrv.net/sandboxes/";
 
-  passthru.o-texlive = (
-    pkgs.texlive.combine { inherit (pkgs.texlive)
-      scheme-small collection-langpolish collection-fontsrecommended
-      pst-barcode tex-gyre marginnote pstricks auto-pst-pdf catchfile pst-pdf
-      pslatex a4wide fancyhdr luatex85 preview environ zref;
-  });
+  passthru = {
+    o-texlive = (
+      pkgs.texlive.combine { inherit (pkgs.texlive)
+        scheme-small collection-langpolish collection-fontsrecommended
+        pst-barcode tex-gyre marginnote pstricks auto-pst-pdf catchfile pst-pdf
+        pslatex a4wide fancyhdr luatex85 preview environ zref;
+    });
+    inherit celery;
+  };
 
   # This just for running tests in `nix develop`.
   nativeBuildInputs = [ poetry-core pytest pkgs.sox pkgs.flite passthru.o-texlive ];
