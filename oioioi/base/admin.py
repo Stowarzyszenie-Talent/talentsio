@@ -220,7 +220,7 @@ def delete_selected(modeladmin, request, queryset, **kwargs):
             for obj in queryset:
                 obj_display = force_str(obj)
                 modeladmin.log_deletion(request, obj, obj_display)
-            queryset.delete()
+            modeladmin.delete_queryset(request, queryset)
             message_text = _("Successfully deleted %(count)d %(items)s.") % {
                 "count": n,
                 "items": model_ngettext(modeladmin.opts, n),

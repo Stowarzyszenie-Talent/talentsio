@@ -868,6 +868,20 @@ class SubmissionAdmin(admin.ModelAdmin):
     contest_display.short_description = _("Contest")
     contest_display.admin_order_field = 'problem_instance__contest'
 
+    # for the "delete selected" action (there is no delete button for
+    # a singular submission in the admin view, so we ignore `delete_model`)
+    def delete_queryset(self, request, queryset):
+        # We can't be lazy here.
+        # Dunno why .values_list returns only ids of foreign keys here.
+        fields = ['problem_instance', 'user']
+        to_recalc = set(
+            (s.problem_instance, s.user) for s in queryset.select_related(
+            *fields).only(*fields)
+        )
+        queryset.delete()
+        for pi, u in to_recalc:
+            pi.controller.update_user_results(u, pi)
+
     def rejudge_action(self, request, queryset):
         # Otherwise the submissions are rejudged in their default display
         # order which is "newest first"

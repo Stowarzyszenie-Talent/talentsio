@@ -102,5 +102,26 @@ class TestTalent(TestCase):
         self.check_modes()
         self.client.logout()
         self.check_modes()
-        self.client.login(username='test_user')
+        self.assertTrue(self.client.login(username='test_user'))
         self.check_modes()
+
+        problems_url = reverse('problems_list', kwargs=self.c_kwargs)
+        response = self.client.get(problems_url)
+        self.assertContains(response, '> 100<')
+
+        self.assertTrue(self.client.login(username='test_admin'))
+        response = self.client.post(
+            reverse('oioioiadmin:contests_submission_changelist'),
+            {
+                'action': 'delete_selected',
+                '_selected_action': ['3'], # The 100 submission.
+                'post': 'yes',
+            }
+        )
+        self.assertEqual(Submission.objects.count(), 2)
+
+        self.assertTrue(self.client.login(username='test_user'))
+        self.switch_ranking_mode('clean')
+        self.check_score(80)
+        response = self.client.get(problems_url)
+        self.assertContains(response, '> 80<')
