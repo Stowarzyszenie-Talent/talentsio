@@ -9,6 +9,7 @@
 {% block title %}{% trans "Printing" %}{% endblock %}
 
 {% block main-content %}
+<h1>{% trans "Printing" %}</h1>
 <form enctype="multipart/form-data" method="post">
     {% csrf_token %}
     {% include "ingredients/form.html" %}
