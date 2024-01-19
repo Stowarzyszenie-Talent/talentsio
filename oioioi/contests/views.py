@@ -28,6 +28,7 @@ from oioioi.contests.models import (
     Contest,
     ContestAttachment,
     ProblemInstance,
+    Round,
     Submission,
     SubmissionReport,
     UserResultForProblem,
@@ -719,12 +720,23 @@ def reattach_problem_confirm_view(request, problem_instance_id, contest_id):
     if not can_admin_contest(request.user, contest):
         raise PermissionDenied
     problem_instance = get_object_or_404(ProblemInstance, id=problem_instance_id)
+    rounds = list(contest.round_set.all())
 
     if request.method == 'POST':
         if request.POST.get('copy-limits', '') == 'on':
             pi = copy_problem_instance(problem_instance, contest)
         else:
             pi = get_new_problem_instance(problem_instance.problem, contest)
+
+        new_r_id = request.POST.get('round', '')
+        if new_r_id == '':
+            new_r = None
+        else:
+            new_r = get_object_or_404(Round, id=new_r_id)
+            if new_r not in rounds:
+                raise PermissionDenied
+        pi.round = new_r
+        pi.save()
 
         messages.success(request, _(u"Problem {} added successfully.".format(pi)))
         return safe_redirect(
@@ -737,5 +749,9 @@ def reattach_problem_confirm_view(request, problem_instance_id, contest_id):
     return TemplateResponse(
         request,
         'contests/reattach_problem_confirm.html',
-        {'problem_instance': problem_instance, 'destination_contest': contest},
+        {
+            'problem_instance': problem_instance,
+            'destination_contest': contest,
+            'rounds': rounds,
+        },
     )

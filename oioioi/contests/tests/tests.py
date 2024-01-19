@@ -2695,6 +2695,23 @@ class TestReattachingProblems(TestCase):
         'test_problem_site',
     ]
 
+    def _reattach(self, url, round=None, should_fail=False):
+        post_data = {'submit': True}
+        if round is not None:
+            post_data['round'] = round
+        count_pre = ProblemInstance.objects.count()
+        response = self.client.post(url, data=post_data, follow=True)
+        if should_fail:
+            self.assertEqual(response.status_code, 403)
+            self.assertEqual(ProblemInstance.objects.count(), count_pre)
+            return
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'c2')
+        self.assertContains(response, ' added successfully.')
+        self.assertContains(response, u'Sum\u017cyce')
+        self.assertEqual(ProblemInstance.objects.count(), count_pre+1)
+        return response
+
     def test_reattaching_problem(self):
         c2 = Contest.objects.get(id='c2')
         c2.default_submissions_limit = 123
@@ -2716,21 +2733,31 @@ class TestReattachingProblems(TestCase):
         self.assertContains(response, "Extra test contest 2")
         self.assertContains(response, u'Sum\u017cyce')
         self.assertContains(response, "Attach")
+        self.assertContains(response, "Round:")
+        self.assertContains(response, "Round 1")
 
-        response = self.client.post(url, data={'submit': True}, follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'c2')
-        self.assertEqual(ProblemInstance.objects.count(), 2)
-        self.assertContains(response, ' added successfully.')
-        self.assertContains(response, u'Sum\u017cyce')
+        # Just to make sure
+        self.assertFalse(ProblemInstance.objects.filter(contest__id='c2').exists())
+
+        self._reattach(url)
         self.assertTrue(ProblemInstance.objects.filter(contest__id='c2').exists())
         self.assertEqual(
             ProblemInstance.objects.get(contest__id='c2').submissions_limit, 123
         )
-
         for test in Problem.objects.get().main_problem_instance.test_set.all():
             test.delete()
         self.assertTrue(Test.objects.count() > 0)
+        ProblemInstance.objects.filter(contest__id='c2').delete()
+
+        self._reattach(url, '')
+        self.assertTrue(ProblemInstance.objects.filter(contest_id='c2').exists())
+        ProblemInstance.objects.filter(contest_id='c2').delete()
+
+        # Should fail, as we try to attach to a different contest's round.
+        self._reattach(url, Round.objects.get(contest_id='c1').id, True)
+
+        self._reattach(url, Round.objects.get(contest_id='c2').id)
+        self.assertTrue(ProblemInstance.objects.filter(round__contest_id='c2').exists())
 
     def test_permissions(self):
         pi_id = ProblemInstance.objects.get().id
