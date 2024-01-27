@@ -25,6 +25,8 @@ RUN apt-get update && \
         sudo \
         libstdc++6 \
         zlib1g \
+        sox \
+        flite \
         locales \
         sox \
         flite \

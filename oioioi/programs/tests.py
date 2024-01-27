@@ -1,7 +1,7 @@
 import os
 import re
 from collections import defaultdict
-from datetime import datetime, timezone  # pylint: disable=E0611
+from datetime import datetime, timezone, timedelta  # pylint: disable=E0611
 
 import pytest
 import six
@@ -18,6 +18,7 @@ from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils.html import escape, strip_tags
 from django.utils.http import urlencode
+from django.utils import timezone as django_timezone
 from oioioi.base.notification import NotificationHandler
 from oioioi.base.tests import (
     TestCase,
@@ -521,6 +522,7 @@ class TestSubmission(TestCase, SubmitFileMixin):
     def setUp(self):
         self.assertTrue(self.client.login(username='test_user'))
 
+    @override_settings(TIME_ZONE="Europe/Warsaw")
     def test_submission_completed_notification(self):
         msg_count = defaultdict(int)
         messages = []
@@ -551,22 +553,29 @@ class TestSubmission(TestCase, SubmitFileMixin):
         environ['contest_id'] = submission.problem_instance.contest.id
         send_notification_judged(environ)
 
-        environ['is_rejudge'] = True
-        send_notification_judged(environ)
-
         # Check if a notification for user 1001 was send
         # And user 1002 doesn't received a notification
         self.assertEqual(len(messages), 1)
         self.assertEqual(msg_count['user_1001_notifications'], 1)
         self.assertEqual(msg_count['user_1002_notifications'], 0)
 
-        # Without full reports available
-        environ['is_rejudge'] = False
+        environ['is_rejudge'] = True
+        send_notification_judged(environ)
+        self.assertEqual(len(messages), 1)
+
+        # Results barely not available, should catch timezone-related errors
+        Round.objects.update(
+            results_date=django_timezone.now()+timedelta(minutes=30)
+        )
+        send_notification_judged(environ)
+        self.assertEqual(len(messages), 1)
+
         Round.objects.update(results_date=None)
         send_notification_judged(environ)
         self.assertEqual(len(messages), 1)
 
         # With score reveals
+        environ['is_rejudge'] = False
         config = ScoreRevealConfig.objects.create(
             problem_instance=submission.problem_instance,
             reveal_limit=1,
@@ -580,6 +589,8 @@ class TestSubmission(TestCase, SubmitFileMixin):
         self.assertIn('score', messages[1][1])
         self.assertEqual(messages[0][1]['score'], '34')
         self.assertEqual(messages[1][1]['score'], 'unknown')
+        self.assertIn('was judged', messages[0][0])
+        self.assertNotIn('Initial result', messages[0][0])
 
         NotificationHandler.send_notification = send_notification_backup
 
@@ -938,6 +949,7 @@ class TestNotifications(TestCase):
 
     def test_initial_results_notification(self):
         msg_count = defaultdict(int)
+        messages = []
 
         @classmethod
         def fake_send_notification(
@@ -949,25 +961,38 @@ class TestNotifications(TestCase):
         ):
             if user.pk == 1001 and notification_type == 'initial_results':
                 msg_count['user_1001_notifications'] += 1
+            messages.append((notification_message, notificaion_message_arguments))
 
         send_notification_backup = NotificationHandler.send_notification
         NotificationHandler.send_notification = fake_send_notification
-        send_notification_judged(
-            {
-                'compilation_result': 'OK',
-                'submission_id': 1,
-                'status': 'OK',
-                'score': None,
-                'max_score': None,
-                'compilation_message': '',
-                'tests': {},
-                'is_rejudge': False,
-            },
-            'INITIAL',
-        )
+        environ = {
+            'compilation_result': 'OK',
+            'submission_id': 1,
+            'status': 'OK',
+            'score': None,
+            'max_score': None,
+            'compilation_message': '',
+            'tests': {},
+            'is_rejudge': False,
+        }
 
+        send_notification_judged(environ, 'INITIAL')
         # Check if a notification for user 1001 was sent
         self.assertEqual(msg_count['user_1001_notifications'], 1)
+
+        environ['status'] = 'CE'
+        send_notification_judged(environ, 'INITIAL')
+        # We should send a notif even for non-compiling submissions
+        self.assertEqual(msg_count['user_1001_notifications'], 2)
+
+        environ['is_rejudge'] = True
+        send_notification_judged(environ, 'INITIAL')
+        # No notification should be sent for a rejudge
+        self.assertEqual(msg_count['user_1001_notifications'], 2)
+
+        self.assertIn('Initial result', messages[0][0])
+        self.assertNotIn('was judged', messages[0][0])
+
         NotificationHandler.send_notification = send_notification_backup
 
 

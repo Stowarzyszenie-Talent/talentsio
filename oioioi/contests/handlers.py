@@ -156,10 +156,10 @@ def send_notification_judged(env, submission, kind='NORMAL', **kwargs):
         message = "Submission %(submission_id)d by user %(username)s for problem %(short_name)s"
         if kind == 'INITIAL':
             notification = 'initial_results'
-            message += " was judged"
+            message += " got initial result."
         else:
             notification =  'submission_judged'
-            message += " got initial result."
+            message += " was judged"
         logger.info(
             message,
             {
