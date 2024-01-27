@@ -4,7 +4,7 @@ from oioioi.printproxy import views
 
 app_name = 'printproxy'
 
-noncontest_patterns = [
+urlpatterns = [
     re_path(r'printproxy/',
         views.printproxy,
         name='printproxy',

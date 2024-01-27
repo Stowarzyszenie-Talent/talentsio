@@ -1,7 +1,7 @@
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from oioioi.base import admin
+from oioioi.contests.current_contest import reverse
 
 
 admin.system_admin_menu_registry.register(

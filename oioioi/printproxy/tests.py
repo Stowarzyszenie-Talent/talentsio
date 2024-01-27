@@ -8,7 +8,7 @@ class TestPrintproxy(TestCase):
     fixtures = ['test_users',]
 
     def test_printproxy(self):
-        url = reverse('printproxy')
+        url = reverse('noncontest:printproxy')
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 302)
         self.assertTrue(self.client.login(username='test_admin'))
