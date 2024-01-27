@@ -880,7 +880,8 @@ class SubmissionAdmin(admin.ModelAdmin):
         )
         queryset.delete()
         for pi, u in to_recalc:
-            pi.controller.update_user_results(u, pi)
+            if u:
+                pi.controller.update_user_results(u, pi)
 
     def rejudge_action(self, request, queryset):
         # Otherwise the submissions are rejudged in their default display
