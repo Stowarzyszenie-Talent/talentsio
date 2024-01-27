@@ -3,11 +3,11 @@ from django.contrib.admin import SimpleListFilter
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from oioioi.base.permissions import make_request_condition
 from oioioi.contests.admin import contest_site, contest_admin_menu_registry
 from oioioi.contests.models import Round
 from oioioi.contests.utils import is_contest_admin
 from oioioi.phase.models import Phase
+from oioioi.phase.utils import is_phase_contest
 
 
 class PhaseListFilter(SimpleListFilter):
@@ -28,6 +28,7 @@ class PhaseListFilter(SimpleListFilter):
 
 
 class PhaseAdmin(admin.ModelAdmin):
+    change_list_template = 'admin/phase/phase_changelist.html'
     list_display = ['round', 'start_date', 'multiplier']
     list_display_links = ['start_date']
     list_filter = [PhaseListFilter]
@@ -56,15 +57,6 @@ class PhaseAdmin(admin.ModelAdmin):
     # def get_list_select_related(self):
     #     return super(PhaseAdmin, self).get_list_select_related() \
     #            + ['round__contest']
-
-
-@make_request_condition
-def is_phase_contest(request):
-    return hasattr(request.contest, 'controller') and getattr(
-        request.contest.controller,
-        'is_phase_contest',
-        False,
-    )
 
 
 contest_site.contest_register(Phase, PhaseAdmin)

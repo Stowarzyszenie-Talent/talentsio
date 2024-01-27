@@ -1,16 +1,34 @@
 import time
 
+from django.contrib import messages
 from django.core.exceptions import SuspiciousOperation
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 
 from oioioi.base.permissions import enforce_condition
-from oioioi.contests.models import Round
-from oioioi.contests.utils import contest_exists
+from oioioi.contests.models import Round, UserResultForProblem
+from oioioi.contests.utils import contest_exists, is_contest_admin
 from oioioi.phase.controllers import _FirstPhase
 from oioioi.phase.models import Phase
+from oioioi.phase.utils import is_phase_contest
 from oioioi.status.registry import status_registry
+
+
+@require_POST
+@enforce_condition(contest_exists & is_contest_admin & is_phase_contest)
+def recalculate_scores_view(request):
+    cid = request.contest.id
+    for result in UserResultForProblem.objects.filter(
+        problem_instance__contest_id=cid,
+    ):
+        request.contest.controller.update_user_result_for_problem(result)
+        result.save() # is this needed ???
+
+    messages.success(request, _("Success!"))
+    return redirect('oioioiadmin:phase_phase_changelist', contest_id=cid)
+
 
 @require_POST
 @enforce_condition(contest_exists)

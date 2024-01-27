@@ -8407,3 +8407,6 @@ msgstr "Nothing has been changed."
 
 msgid "C++ reference"
 msgstr "C++ reference"
+
+msgid "Recalculate scores"
+msgstr "Recalculate scores"

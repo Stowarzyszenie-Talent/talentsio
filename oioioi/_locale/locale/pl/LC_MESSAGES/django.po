@@ -796,7 +796,7 @@ msgstr "Wygląd na stronie"
 #, python-format
 #| msgid "Add news"
 msgid "Add %(name)s"
-msgstr "Dodaj%(name)s"
+msgstr "Dodaj %(name)s"
 
 #: base/templates/admin/change_list_results.html:17
 #| msgid "Remove friend"
@@ -9888,6 +9888,9 @@ msgstr "Nic nie zostało zmienione."
 
 msgid "C++ reference"
 msgstr "Dokumentacja C++"
+
+msgid "Recalculate scores"
+msgstr "Odśwież wyniki"
 
 #: sio fixes
 msgid "unknown"

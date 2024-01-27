@@ -9,4 +9,8 @@ contest_patterns = [
         views.change_phase_ranking_type,
         name='change_phase_ranking_type',
     ),
+    re_path(r'^recalculate_scores/$',
+        views.recalculate_scores_view,
+        name='recalculate_scores',
+    ),
 ]

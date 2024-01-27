@@ -1,0 +1,11 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+    <a role="button" class="btn btn-sm btn-outline-primary"
+        href="#" data-post-url="{% url 'recalculate_scores' contest_id=contest.id %}">
+        <i class="fa-solid fa-rotate-right"></i>
+        {% trans "Recalculate scores" %}
+    </a>
+    {{ block.super }}
+{% endblock %}

@@ -13,6 +13,7 @@ from oioioi.contests.models import (
     Submission,
     Round,
 )
+from oioioi.phase.models import Phase
 from oioioi.problems.models import Problem
 from oioioi.problems.utils import get_new_problem_instance
 from oioioi.rankings.controllers import CONTEST_RANKING_KEY
@@ -125,3 +126,20 @@ class TestTalent(TestCase):
         self.check_score(80)
         response = self.client.get(problems_url)
         self.assertContains(response, '> 80<')
+
+        recalc_url = reverse('recalculate_scores', kwargs=self.c_kwargs)
+        response = self.client.post(recalc_url, follow=True)
+        self.assertEqual(response.status_code, 403)
+
+        self.assertTrue(self.client.login(username='test_admin'))
+        url = reverse('oioioiadmin:phase_phase_changelist', kwargs=self.c_kwargs)
+        response = self.client.get(url)
+        self.assertContains(response, 'Recalculate scores')
+
+        # This doesn't trigger recalculation.
+        Phase.objects.all().delete()
+        self.switch_ranking_mode('default')
+        self.check_score(65)
+        response = self.client.post(recalc_url, follow=True)
+        self.assertContains(response, 'Success')
+        self.check_score(80)
