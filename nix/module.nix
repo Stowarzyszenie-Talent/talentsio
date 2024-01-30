@@ -525,6 +525,8 @@ in
             requiresDatabase = true;
             requiresTexlive = true;
 
+            path = [ pkgs.cups ];
+
             restartTriggers = [ script ];
             reloadIfChanged = true;
 
