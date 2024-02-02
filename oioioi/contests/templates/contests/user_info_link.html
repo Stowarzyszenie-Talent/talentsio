@@ -1,9 +1,17 @@
 {% spaceless %}
 {% if is_admin or can_see_personal_data %}
-    <a href="{% url 'user_info' contest_id=ctx.contest.id user_id=target_user.id %}">
-{% endif %}
+    {% if ctx.contest %}
+        <a href="{% url 'user_info' contest_id=ctx.contest.id user_id=target_user.id %}">
+            {{ target_name }}
+        </a>
+    {% elif ctx.user.is_superuser %}
+        <a href="{% url 'noncontest:oioioiadmin:auth_user_change' object_id=target_user.id %}">
+            {{ target_name }}
+        </a>
+    {% else %}
+        {{ target_name }}
+    {% endif %}
+{% else %}
     {{ target_name }}
-{% if is_admin %}
-    </a>
 {% endif %}
 {% endspaceless %}

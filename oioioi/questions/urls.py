@@ -4,6 +4,10 @@ from oioioi.questions import views
 
 app_name = 'questions'
 
+noncontest_patterns = [
+    re_path(r'^all_questions/$', views.all_contests_messages_view, name='all_messages'),
+]
+
 contest_patterns = [
     re_path(r'^questions/$', views.messages_view, name='contest_messages'),
     re_path(r'^questions/all/$', views.all_messages_view, name='contest_all_messages'),

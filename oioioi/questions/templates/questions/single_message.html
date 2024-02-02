@@ -29,10 +29,10 @@
                         <i class="fa-solid fa-eye"></i>
                     </a>
                 {% endif %}
-                <a class="oioioi-message__action" href="{% url "oioioiadmin:questions_message_change" message.id %}">
+                <a class="oioioi-message__action" href="{% url "oioioiadmin:questions_message_change" message.id contest_id=message.contest_id %}">
                     <i class="fa-solid fa-pen-to-square"></i>
                 </a>
-                <a class="oioioi-message__action" href="{% url "oioioiadmin:questions_message_delete" message.id %}">
+                <a class="oioioi-message__action" href="{% url "oioioiadmin:questions_message_delete" message.id contest_id=message.contest_id %}">
                     <i class="fa-solid fa-xmark"></i>
                 </a>
             </span>

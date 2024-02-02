@@ -14,8 +14,13 @@ from django.utils.text import Truncator
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods, require_POST
 
+from oioioi.base.admin import system_admin_menu_registry
 from oioioi.base.menu import menu_registry
-from oioioi.base.permissions import enforce_condition, not_anonymous
+from oioioi.base.permissions import (
+    enforce_condition,
+    not_anonymous,
+    is_superuser,
+)
 from oioioi.base.utils import jsonify
 from oioioi.base.utils.user_selection import get_user_hints_view
 from oioioi.contests.utils import (
@@ -210,6 +215,30 @@ def messages_view(request):
             'onsite': request.contest.controller.is_onsite(),
             'message': get_news_message(request),
             **template_kwargs,
+        },
+    )
+
+
+@system_admin_menu_registry.register_decorator(
+    _("All questions and news"),
+    lambda request: reverse('all_messages'),
+    order=45,
+)
+@enforce_condition(is_superuser)
+def all_contests_messages_view(request):
+    messages = messages_template_context(
+        request,
+        Message.objects.order_by('-date').select_related(
+            'top_reference', 'author', 'problem_instance',
+            'problem_instance__problem', 'contest',
+        ),
+    )
+    return TemplateResponse(
+        request,
+        'questions/list-simple.html',
+        {
+            'records': messages,
+            'questions_on_page': getattr(settings, 'QUESTIONS_ON_PAGE', 30),
         },
     )
 

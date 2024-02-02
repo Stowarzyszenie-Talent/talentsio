@@ -851,6 +851,45 @@ class TestAllMessagesView(TestCase):
             self.assertContains(response, 'public-answer')
 
 
+class TestAllContestsMessagesView(TestCase):
+    fixtures = [
+        'test_users',
+        'test_contest',
+        'test_extra_contests',
+        'test_full_package',
+        'test_problem_instance',
+        'test_messages_two_contests',
+        'test_second_user_messages',
+    ]
+
+    def test_visible_messages(self):
+        c_visible = [
+            'user2-public-answer-body',
+            'user2-unanswered-question',
+            'user2-question-body',
+            'user2-private-answer-body',
+        ]
+        c1_visible = [
+            'question-body',
+            'general-question',
+            'private-answer-body',
+            'public-answer-body',
+        ]
+
+        self.assertTrue(self.client.login(username='test_admin'))
+        response = self.client.get(reverse('all_messages'))
+        self.assertEqual(response.status_code, 200)
+        for content in c_visible + c1_visible:
+            self.assertContains(response, content)
+        response = self.client.get(
+            reverse('contest_messages', kwargs={'contest_id': 'c1'})
+        )
+        for content in c1_visible:
+            self.assertContains(response, content)
+        for content in c_visible:
+            self.assertNotContains(response, content)
+
+
 class TestUserInfo(TestCase):
     fixtures = [
         'test_users',

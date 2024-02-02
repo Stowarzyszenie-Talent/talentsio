@@ -27,6 +27,9 @@
                 {% else %}
                 <th>{% trans "Date" %}</th>
                 {% endif %}
+                {% if not request.contest %}
+                <th>{% trans "Contest" %}</th>
+                {% endif %}
                 <th>{% trans "Round" %}</th>
                 <th>{% trans "Category" %}</th>
                 <th>{% trans "Topic" %}</th>
@@ -38,7 +41,7 @@
         <tbody>
             {% for record in records %}
             {% with record.message as msg %}
-            {% url 'message' contest_id=contest.id message_id=record.link_message.id as link %}
+            {% url 'message' contest_id=msg.contest.id message_id=record.link_message.id as link %}
             <tr id="question{{ record.message.id }}" class="{% if record.needs_reply %}danger{% elif is_admin and msg.kind == 'PUBLIC' %}info{% endif %}">
                 {% if not hide_author %}
                     <td>
@@ -52,6 +55,11 @@
                     </td>
                 {% endif %}
                 <td>{{ msg.get_user_date }}</td>
+                {% if not request.contest %}
+                <td><a onclick="event.cancelBubble = true;" href={% url 'default_contest_view' contest_id=msg.contest_id %}>
+                    {{ msg.contest }}
+                </a></td>
+                {% endif %}
                 <td>{{ msg.round }}</td>
                 <td>{{ msg.problem_instance|default_if_none:_("General") }}</td>
                 <td>

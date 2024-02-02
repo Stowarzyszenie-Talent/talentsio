@@ -1,0 +1,20 @@
+{% extends "base-with-menu.html" %}
+{% load i18n check_perm pagination_tags %}
+
+{% block title %}{% trans "Questions and news" %}{% endblock %}
+
+{% block main-content %}
+    <div class="clearfix">
+        <h1 class="float-left">{% trans "Questions and news" %}</h1>
+    </div>
+    {% if records %}
+        {% autopaginate records questions_on_page %}
+        {% paginate %}
+        {% include "questions/list_table.html" %}
+        {% paginate %}
+    {% else %}
+        <p class="text-center empty-space-filler">
+            {% blocktrans %}No questions or news yet.{% endblocktrans %}
+        </p>
+    {% endif %}
+{% endblock %}
