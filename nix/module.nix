@@ -449,7 +449,7 @@ in
                 ProtectKernelLogs = true;
                 PrivateDevices = true;
               } // (builtins.removeAttrs (x.serviceConfig or { }) [ "ReadWritePaths" "SupplementaryGroups" ]);
-            } // (builtins.removeAttrs x [ "name" "requiresDatabase" "requiresFiletracker" "requiresTexlive" "requires" "after" "serviceConfig" "environment" ]);
+            } // (builtins.removeAttrs x [ "name" "requiresDatabase" "requiresFiletracker" "requiresTexlive" "requires" "after" "path" "serviceConfig" "environment" ]);
         in
         {
           # The sioworker service has to be modified this way so it has access to the shared filetracker cache.
