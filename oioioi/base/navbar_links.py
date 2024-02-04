@@ -14,16 +14,16 @@ if settings.CONTEST_MODE == ContestMode.neutral:
         order=100,
     )
 
-navbar_links_registry.register(
-    name='problemset',
-    text=_("Problemset"),
-    url_generator=lambda request: reverse('problemset_main'),
-    order=200,
-)
-
-navbar_links_registry.register(
-    name='task_archive',
-    text=_("Task archive"),
-    url_generator=lambda request: reverse('task_archive'),
-    order=300,
-)
+#navbar_links_registry.register(
+#    name='problemset',
+#    text=_("Problemset"),
+#    url_generator=lambda request: reverse('problemset_main'),
+#    order=200,
+#)
+#
+#navbar_links_registry.register(
+#    name='task_archive',
+#    text=_("Task archive"),
+#    url_generator=lambda request: reverse('task_archive'),
+#    order=300,
+#)
