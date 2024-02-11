@@ -8381,8 +8381,11 @@ msgstr "Talent registrations"
 msgid "Move to %(contest_name)s"
 msgstr "Move to %(contest_name)s"
 
-msgid "Room number or name"
-msgstr "Room number or name"
+msgid "room_number_short_desc"
+msgstr "Room number"
+
+msgid "room_number_desc"
+msgstr "Room number (e.g. 10, 301 or Rodzinny)"
 
 msgid "Make attendance list"
 msgstr "Make attendance list"

@@ -27,7 +27,7 @@ class TalentRegistration(models.Model):
     )
     room = models.CharField(
         max_length=15,
-        verbose_name=_("Room number or name"),
+        verbose_name=_("room_number_short_desc"),
         null=True,
     )
 

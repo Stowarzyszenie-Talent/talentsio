@@ -5,6 +5,7 @@ from django.core.management import call_command
 from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from oioioi.base.tests import TestCase
 from oioioi.base.utils.pdf import extract_text_from_pdf
@@ -20,7 +21,7 @@ class TestTalent(TestCase):
     def setUp(self):
         call_command('talent_camp_init')
 
-    def register(self, username, group, room='Rodzinny'):
+    def register(self, username, group, room='Rodzinny', should_fail=False):
         count = User.objects.count()
         response = self.client.post(reverse('sign-up'), {
             'username': username,
@@ -38,17 +39,23 @@ class TestTalent(TestCase):
             'captcha_1': 'PASSED',
         }, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Sign-up successful")
-        self.assertEqual(count+1, User.objects.count())
-        if group != 'brak':
-            tr = TalentRegistration.objects.get(user__username=username)
-            self.assertEqual(tr.contest_id, group)
-            self.assertEqual(tr.room, room)
-        else:
+        if should_fail:
+            self.assertNotContains(response, "Sign-up successful")
+            self.assertEqual(count, User.objects.count())
             self.assertEqual(TalentRegistration.objects.filter(
                 user__username=username,
             ).count(), 0)
-        self.assertEqual(count+1, User.objects.count())
+        else:
+            self.assertContains(response, "Sign-up successful")
+            self.assertEqual(count+1, User.objects.count())
+            if group != 'brak':
+                tr = TalentRegistration.objects.get(user__username=username)
+                self.assertEqual(tr.contest_id, group)
+                self.assertEqual(tr.room, room)
+            else:
+                self.assertEqual(TalentRegistration.objects.filter(
+                    user__username=username,
+                ).count(), 0)
 
     def assertParticipants(self, *args):
         self.assertEqual(len(args), Participant.objects.count())
@@ -65,7 +72,7 @@ class TestTalent(TestCase):
 
     # ids: e,d,a; closed: e,d; supervised: a,d; phased: a
     def test_registrations(self):
-        self.register('a', 'a', room='69')
+        self.register('a', 'a')
         self.assertMemberships('a')
         self.assertParticipants('a')
         self.del_user()
@@ -85,6 +92,17 @@ class TestTalent(TestCase):
         # This was changed, ungrouped people shouldn't see semi-closed contests
         self.assertParticipants() #('a')
         self.assertEqual(TalentRegistration.objects.count(), 0)
+        self.del_user()
+
+        for r in ['0', '011', '1111', 'amogus', '']:
+            self.register('a', 'e', r, True)
+            self.register('a', 'brak', r, True)
+
+        for r in ['1', '10', '999', 'Rodzinny']:
+            self.register('a', 'e', r)
+            self.del_user()
+            self.register('a', 'brak', r)
+            self.del_user()
 
     def tr_admin_url(self, id):
         return reverse(
@@ -142,6 +160,30 @@ class TestTalent(TestCase):
         for s in ['Grupa A - ' + curr_date, '1.', 'user', 'test', '69']:
             self.assertIn(s, pdf_text)
 
+    def _change_room_number(self, value, should_fail=False):
+        prev_value = TalentRegistration.objects.get(user__username="a").room
+        assert prev_value != value or should_fail
+        url = reverse('talent_camp_data', kwargs={'contest_id': 'a'})
+        resp = self.client.post(url, data={'room': value}, follow=True)
+        self.assertContains(resp, "Room number (e.g.")
+        new_value = TalentRegistration.objects.get(user__username="a").room
+        if not should_fail:
+            self.assertEqual(new_value, value)
+            self.assertContains(resp, "Successfully changed!")
+            self.assertContains(resp, value)
+            self.assertNotContains(resp, "Nothing has been changed.")
+            self.assertNotContains(resp, "This field is required")
+            self.assertNotContains(resp, "Enter a valid value.")
+        else:
+            self.assertEqual(new_value, prev_value)
+            if prev_value == value:
+                self.assertContains(resp, "Nothing has been changed.")
+            elif len(value) == 0:
+                self.assertContains(resp, "This field is required")
+            else:
+                self.assertContains(resp, "Enter a valid value.")
+            self.assertNotContains(resp, "Successfully changed!")
+
     def test_camp_data(self):
         url = reverse('talent_camp_data', kwargs={'contest_id': 'a'})
         resp = self.client.get(url, follow=True)
@@ -163,30 +205,16 @@ class TestTalent(TestCase):
             resp.content.decode('utf-8').replace('\n', ''),
             r'Current contest group: *<a href="?/c/a/"?>Grupa A</a>',
         )
-        self.assertContains(resp, "Room number or name")
+        self.assertContains(resp, _("room_number_desc"))
         self.assertContains(resp, "69")
 
-        resp = self.client.post(url, data={'room': '69'}, follow=True)
-        self.assertContains(resp, "Room number or name")
-        self.assertNotContains(resp, "This field is required")
-        self.assertContains(resp, "69")
-        self.assertContains(resp, "Nothing has been changed.")
-
-        resp = self.client.post(url, data={'room': ''}, follow=True)
-        self.assertNotContains(resp, "Successfully changed!")
-        self.assertContains(resp, "Room number or name")
-        self.assertContains(resp, "This field is required")
-        resp = self.client.get(url)
-        self.assertContains(resp, "Room number or name")
-        self.assertNotContains(resp, "This field is required")
-        self.assertContains(resp, "69")
-
-        resp = self.client.post(url, data={'room': '70'}, follow=True)
-        self.assertContains(resp, "Room number or name")
-        self.assertNotContains(resp, "This field is required")
-        self.assertContains(resp, "70")
-        self.assertContains(resp, "Successfully changed!")
-
+        self._change_room_number('69', True)
+        self._change_room_number('', True)
+        self._change_room_number('01', True)
+        self._change_room_number('1')
+        self._change_room_number('301')
+        self._change_room_number('Rodzinny')
+        self._change_room_number('69')
 
     def test_moving(self):
         self.register('a', 'a')

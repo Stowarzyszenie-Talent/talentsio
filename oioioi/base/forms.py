@@ -196,15 +196,15 @@ class RegistrationFormWithNames(RegistrationForm):
         if 'oioioi.talent' in settings.INSTALLED_APPS:
             from oioioi.talent.models import TalentRegistrationSwitch
             if TalentRegistrationSwitch.objects.filter(status=True).exists():
+                from oioioi.talent.forms import TalentRoomFormField
                 group_field = forms.ChoiceField(
                     choices=settings.TALENT_GROUP_FORM_CHOICES,
                     label=_("Contest group"),
                 )
-                room_field = forms.CharField(label=_("Room number or name"))
 
                 tmp_fields = tmp_fields + [
                     ('group', group_field),
-                    ('room', room_field),
+                    ('room', TalentRoomFormField()),
                 ]
         self.fields = OrderedDict(tmp_fields)
         self.fields.update(extra)

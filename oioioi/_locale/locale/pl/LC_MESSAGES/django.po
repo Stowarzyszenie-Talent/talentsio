@@ -9854,16 +9854,19 @@ msgid "Talent participants"
 msgstr "Uczestnicy Talent"
 
 msgid "Talent registration"
-msgstr "rejestracja Talent"
+msgstr "Rejestracja Talent"
 
 msgid "Talent registrations"
-msgstr "rejestracje Talent"
+msgstr "Rejestracje Talent"
 
 msgid "Move to %(contest_name)s"
 msgstr "Przenieś do %(contest_name)s"
 
-msgid "Room number or name"
-msgstr "Numer lub nazwa pokoju"
+msgid "room_number_short_desc"
+msgstr "Numer pokoju"
+
+msgid "room_number_desc"
+msgstr "Numer pokoju (np. 10, 301 lub Rodzinny)"
 
 msgid "Make attendance list"
 msgstr "Wygeneruj listę obecności"
