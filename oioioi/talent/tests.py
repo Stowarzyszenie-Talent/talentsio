@@ -1,6 +1,7 @@
 from io import BytesIO
 
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django.core.management import call_command
 from django.test.utils import override_settings
 from django.urls import reverse
@@ -20,6 +21,11 @@ class TestTalent(TestCase):
 
     def setUp(self):
         call_command('talent_camp_init')
+
+    def test_site_data(self):
+        s = Site.objects.get(id=1)
+        self.assertEqual(s.domain, 'oboz.talent.edu.pl')
+        self.assertEqual(s.name, 'OIOIOI')
 
     def register(self, username, group, room='Rodzinny', should_fail=False):
         count = User.objects.count()

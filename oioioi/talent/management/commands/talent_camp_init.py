@@ -3,6 +3,7 @@ from getpass import getpass
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.sites.models import Site
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils.timezone import make_aware
@@ -183,5 +184,11 @@ class Command(BaseCommand):
 
             # Enable talent registration (automatic assigning to groups)
             TalentRegistrationSwitch.objects.get_or_create(status=True)
+
+            # Set the site domain and name for urls in password reset emails.
+            s = Site.objects.get(id=settings.SITE_ID)
+            s.domain = settings.SITE_DOMAIN
+            s.name = settings.SITE_NAME
+            s.save()
 
         print("--- Finished!")

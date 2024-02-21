@@ -44,11 +44,11 @@ let
     REGISTRATION_RULES_CONSENT = pythonExpression ''_("talent terms accepted")'';
 
     NOTIFICATIONS_SERVER_URL = "http${sIfSSL}://${cfg.domain}/";
+    PUBLIC_ROOT_URL = "http${sIfSSL}://${cfg.domain}";
+    SITE_DOMAIN = cfg.domain;
 
     MATHJAX_LOCATION = "";
     CPPREF_URL = "/cppreference/en/Main_Page.html";
-
-    PUBLIC_ROOT_URL = "http${sIfSSL}://${cfg.domain}";
 
     COMPRESS_OFFLINE = true;
 

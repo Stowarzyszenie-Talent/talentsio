@@ -892,3 +892,5 @@ SANDBOXES_MANIFEST = 'https://otsrv.net/sandboxes/Manifest'
 CPPREF_URL = "" # "" disables showing it
 
 TALENT_ROOM_REGEX = r'^([1-9][0-9]{0,2}|Rodzinny)$'
+
+SITE_DOMAIN = "example.com"

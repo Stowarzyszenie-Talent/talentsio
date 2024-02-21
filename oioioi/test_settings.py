@@ -202,3 +202,5 @@ TALENT_CONTEST_RESULTS = {
     "e": timedelta(hours=14, minutes=5),
 }
 TALENT_DASHBOARD_MESSAGE = "Example dashboard message"
+
+SITE_DOMAIN = "oboz.talent.edu.pl"

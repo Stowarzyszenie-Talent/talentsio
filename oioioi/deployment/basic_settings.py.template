@@ -1,4 +1,6 @@
 #SITE_NAME = 'OIOIOI'
+# These three are managed by nix
+#SITE_DOMAIN = 'example.com'
 #ALLOWED_HOSTS = []
 #TIME_ZONE = '__TIMEZONE__'
 
@@ -8,7 +10,7 @@
 #DEFAULT_SUBMISSIONS_LIMIT = 10
 
 # The URL available from remote machines for notifications socket.io client,
-#NOTIFICATIONS_SERVER_URL = 'http://localhost:7887/'
+#NOTIFICATIONS_SERVER_URL = 'http://localhost:7887/' # managed by nix
 
 #EVALMGR_CONCURRENCY = 1
 #UNPACKMGR_CONCURRENCY = 1
