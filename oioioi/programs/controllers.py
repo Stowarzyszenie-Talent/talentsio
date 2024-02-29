@@ -620,6 +620,14 @@ class ProgrammingProblemController(ProblemController):
         if problem_instance.contest is not None:
             use_editor = use_editor and problem_instance.contest.enable_editor
 
+        pic = problem_instance.controller
+        size_limit = pic.get_submission_size_limit(problem_instance)
+        widget_attrs = {
+            'rows': 10,
+            'class': 'monospace',
+            'maxlength': size_limit,
+        }
+
         code_widget = None
         if use_editor:
             default_state = False
@@ -634,12 +642,12 @@ class ProgrammingProblemController(ProblemController):
                 initial=True if default_state else False,
             )
             code_widget = AceEditorWidget(
-                attrs={'rows': 10, 'class': 'monospace'},
+                attrs=widget_attrs,
                 default_state=default_state,
             )
         else:
             code_widget = forms.widgets.Textarea(
-                attrs={'rows': 10, 'class': 'monospace'}
+                attrs=widget_attrs
             )
 
         form.fields['code'] = forms.CharField(
