@@ -42,6 +42,22 @@
         }
     },
     {
+      "pk": 1,
+      "model": "sinolpack.extraconfig",
+      "fields": {
+        "problem": 1,
+        "config": ""
+      }
+    },
+    {
+      "pk": 2,
+      "model": "sinolpack.extraconfig",
+      "fields": {
+        "problem": 2,
+        "config": ""
+      }
+    },
+    {
         "model": "contests.round",
         "pk": 1,
         "fields": {
