@@ -17,6 +17,7 @@ from oioioi.phase.models import Phase
 from oioioi.problems.models import Problem
 from oioioi.problems.utils import get_new_problem_instance
 from oioioi.rankings.controllers import CONTEST_RANKING_KEY
+from oioioi.scoresreveal.utils import ScoreRevealContestConfig
 from oioioi.talent.management.commands.talent_camp_init import OPEN_CONTEST
 
 @override_settings(TALENT_CAMP_START_DATE="1.1.2012")
@@ -63,6 +64,13 @@ class TestTalent(TestCase):
         response = self.client.post(url)
         self.assertEqual(response.status_code, 302)
 
+    def check_problemlist_score(self, score):
+        self.assertTrue(self.client.login(username='test_user'))
+        url = reverse('problems_list', kwargs=self.c_kwargs)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '> {}<'.format(str(score)), 1)
+
     def check_score(self, score):
         url = reverse('default_ranking', kwargs=self.c_kwargs)
         response = self.client.get(url)
@@ -70,63 +78,68 @@ class TestTalent(TestCase):
         # This pattern occurs in the Sum column
         self.assertContains(response, '>{}<'.format(str(score)), 1)
 
-    def check_modes(self):
-        self.check_score(77)
+    def check_modes(self, scores):
         self.switch_ranking_mode('first')
-        self.check_score(20)
+        self.check_score(scores[0])
         self.switch_ranking_mode('clean')
-        self.check_score(100)
+        self.check_score(scores[1])
         self.switch_ranking_mode('default')
-        self.check_score(77)
+        self.check_score(scores[2])
 
     def test_phases(self):
         self.assertTrue(self.client.login(username='test_admin'))
         user = User.objects.get(username='test_user')
+        scrcc = ScoreRevealContestConfig.objects.get()
+        scrcc.reveal_limit = 0
+        scrcc.save()
 
         # In first phase
         with fake_time(datetime(2012, 1, 2, 10, 0, tzinfo=timezone.utc)):
-            self._submit_solution(user, 'grupy-20.cpp')
-        # In second phase
-        with fake_time(datetime(2012, 1, 2, 15, 0, tzinfo=timezone.utc)):
             self._submit_solution(user, 'grupy-80.cpp')
-        # In third phase
+        with fake_time(datetime(2012, 1, 2, 10, 1, tzinfo=timezone.utc)):
+            self._submit_solution(user, 'grupy-20.cpp')
+        # In second phase (0.75)
+        with fake_time(datetime(2012, 1, 2, 15, 1, tzinfo=timezone.utc)):
+            self._submit_solution(user, 'grupy-80.cpp')
+        with fake_time(datetime(2012, 1, 2, 15, 0, tzinfo=timezone.utc)):
+            self._submit_solution(user, 'grupy-100.cpp')
+        with fake_time(datetime(2012, 1, 2, 15, 1, tzinfo=timezone.utc)):
+            self._submit_solution(user, 'grupy-80.cpp')
+        # In third phase (0.60)
         with fake_time(datetime(2012, 1, 2, 23, 0, tzinfo=timezone.utc)):
             self._submit_solution(user, 'grupy-100.cpp')
-        self.assertEqual(Submission.objects.count(), 3)
+        self.assertEqual(Submission.objects.count(), 6)
         # Sanity check
         response = self.client.get(reverse(
             'submission',
             kwargs=self.c_kwargs | {'submission_id': '1'},
         ))
-        self.assertContains(response, '>20<')
+        self.assertContains(response, '>80<')
 
-        self.check_modes()
+        # Check with different permissions
+        self.check_modes([20, 100, 77])
         self.client.logout()
-        self.check_modes()
+        self.check_modes([20, 100, 77])
         self.assertTrue(self.client.login(username='test_user'))
-        self.check_modes()
+        self.check_modes([20, 100, 77])
 
-        problems_url = reverse('problems_list', kwargs=self.c_kwargs)
-        response = self.client.get(problems_url)
-        self.assertContains(response, '> 100<')
+        self.check_problemlist_score(100)
 
         self.assertTrue(self.client.login(username='test_admin'))
         response = self.client.post(
             reverse('oioioiadmin:contests_submission_changelist'),
             {
                 'action': 'delete_selected',
-                '_selected_action': ['3'], # The 100 submission.
+                '_selected_action': ['6'], # The last 100 submission.
                 'post': 'yes',
             }
         )
-        self.assertEqual(Submission.objects.count(), 2)
+        self.assertEqual(Submission.objects.count(), 5)
+
+        self.check_modes([20, 80, 65])
+        self.check_problemlist_score(80)
 
         self.assertTrue(self.client.login(username='test_user'))
-        self.switch_ranking_mode('clean')
-        self.check_score(80)
-        response = self.client.get(problems_url)
-        self.assertContains(response, '> 80<')
-
         recalc_url = reverse('recalculate_scores', kwargs=self.c_kwargs)
         response = self.client.post(recalc_url, follow=True)
         self.assertEqual(response.status_code, 403)
@@ -137,9 +150,18 @@ class TestTalent(TestCase):
         self.assertContains(response, 'Recalculate scores')
 
         # This doesn't trigger recalculation.
-        Phase.objects.all().delete()
-        self.switch_ranking_mode('default')
-        self.check_score(65)
+        scrcc.reveal_limit = 69420
+        scrcc.save()
+        self.check_modes([20, 80, 65])
         response = self.client.post(recalc_url, follow=True)
         self.assertContains(response, 'Success')
-        self.check_score(80)
+        self.check_modes([80, 100, 95])
+        self.check_problemlist_score(100)
+
+        scrcc.delete()
+        self.check_modes([80, 100, 95])
+        self.assertTrue(self.client.login(username='test_admin'))
+        response = self.client.post(recalc_url, follow=True)
+        self.assertContains(response, 'Success')
+        self.check_modes([20, 80, 65])
+        self.check_problemlist_score(80)

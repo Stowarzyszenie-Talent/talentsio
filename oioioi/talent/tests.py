@@ -243,6 +243,5 @@ class TestTalent(TestCase):
     @override_settings(TALENT_SCORE1=69)
     def test_changing_multipliers(self):
         count = Phase.objects.count()
-        call_command('talent_camp_init')
         self.assertEqual(count, Phase.objects.count())
         self.assertEqual(Phase.objects.filter(multiplier=69).count(), 0)

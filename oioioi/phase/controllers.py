@@ -41,7 +41,10 @@ class PhaseMixinForContestController(object):
             user=user,
             score__isnull=False,
             kind='NORMAL'
-        ).exclude(status='CE').order_by('date')
+        ).exclude(status='CE')
+
+        # Order by e.g. date or score.
+        base_qs = pi.controller.order_submissions_qs(pi, base_qs)
 
         phases = list(Phase.objects.filter(
             round_id=pi.round_id,
@@ -53,7 +56,7 @@ class PhaseMixinForContestController(object):
         prev_multiplier = 100
 
         for p in phases:
-            s = base_qs.filter(date__lt=p.start_date).last()
+            s = base_qs.filter(date__lt=p.start_date).first()
             if s:
                 total += prev_multiplier * max(
                     s.score.to_int() - highest, 0)
@@ -61,19 +64,19 @@ class PhaseMixinForContestController(object):
             prev_multiplier = p.multiplier
 
         first_phase_sub = base_qs.filter(
-            date__lt=phases[0].start_date).last()
+            date__lt=phases[0].start_date).first()
         first_phase_result.score = None
         if first_phase_sub:
             first_phase_result.score = first_phase_sub.score
 
-        last_submission = base_qs.last()
-        if last_submission: # if there are any meaningful submissions
+        final_submission = base_qs.first()
+        if final_submission: # if there are any meaningful submissions
             report = SubmissionReport.objects.filter(
-                submission=last_submission, status='ACTIVE', kind='NORMAL'
-            ).last()
+                submission=final_submission, status='ACTIVE', kind='NORMAL'
+            ).first()
 
             result.score = IntegerScore(highest)
-            result.status = last_submission.status
+            result.status = final_submission.status
             result.submission_report = report
             phase_result.score = IntegerScore(total // 100)
         else:

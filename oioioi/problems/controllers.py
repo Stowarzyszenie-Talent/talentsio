@@ -732,3 +732,9 @@ class ProblemController(RegisteredSubclassesBase, ObjectWithMixins):
             message += gettext_noop("The score is %(score)s.")
 
         return message
+
+    def order_submissions_qs(self, pi, qs):
+        """TALENT FEATURE: abstract away picking either latest or best
+        submissions for generating results.
+        """
+        return qs.order_by('-date')
