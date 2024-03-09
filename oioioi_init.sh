@@ -11,13 +11,12 @@ sed -i "s/DEBUG = True/DEBUG = False/;s/^COMPRESS_OFFLINE.*\$/COMPRESS_OFFLINE =
 
 ./manage.py migrate &
 if [ "$1" == "--dev" ]; then
-    export OIOIOI_SERVER_MODE="uwsgi-http"
     ./manage.py collectstatic --noinput &
 else
-    export OIOIOI_SERVER_MODE="uwsgi"
     ./manage.py compilejsi18n &
     (./manage.py collectstatic --noinput && ./manage.py compress > /dev/null) &
-    sudo /etc/init.d/nginx start &
+    #sudo /etc/init.d/nginx start &
+    caddy start &
 fi
 
 wait

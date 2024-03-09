@@ -10,6 +10,8 @@ services:
     image: talentsio-dev
     command: ["/sio2/oioioi/oioioi_init.sh", "--dev"]
     env_file: env
+    environment:
+      OIOIOI_SERVER_MODE: "uwsgi-http"
     build:
       context: .
       dockerfile: Dockerfile

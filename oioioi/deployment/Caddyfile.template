@@ -1,0 +1,44 @@
+(logformat) {
+    format filter {
+        wrap console
+        fields {
+            resp_headers delete
+            request>headers delete
+            request>tls delete
+        }
+    }
+}
+{
+    log {
+        import logformat
+    }
+}
+localhost {
+    tls internal
+    encode gzip
+    request_body max_size 1GiB
+
+    handle_errors {
+        respond "{err.status_code} {err.status_text}"
+    }
+
+    log {
+        import logformat
+        output file __DIR__/logs/caddy.log
+    }
+
+    handle_path __STATIC_URL__* {
+        root * __STATIC_ROOT__
+        handle /CACHE/* {
+            header Cache-Control max-age=31536000 # 1y
+            file_server {
+                precompressed gzip
+            }
+        }
+        header Cache-Control max-age=86400 # 1d
+        file_server
+    }
+
+    reverse_proxy /socket.io/* localhost:7887
+    reverse_proxy localhost:8000
+}

@@ -118,6 +118,16 @@ def generate_all(dir, verbose):
         },
     )
 
+    generate_from_template(
+        dir,
+        'Caddyfile',
+        {
+            '__DIR__': dir,
+            '__STATIC_URL__': settings['STATIC_URL'],
+            '__STATIC_ROOT__': settings['STATIC_ROOT'],
+        },
+    )
+
     # Having DJANGO_SETTINGS_MODULE here would probably cause collectstatic to
     # run with wrong settings.
     os.environ.pop('DJANGO_SETTINGS_MODULE', None)
