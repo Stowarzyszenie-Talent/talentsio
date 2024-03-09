@@ -10,8 +10,12 @@ services:
     image: $OIOIOI_VERSION
     command: ["/sio2/oioioi/oioioi_init.sh"]
     env_file: env
+    environment:
+      OIOIOI_SERVER_MODE: "uwsgi-http" # For nginx change this to "uwsgi"
     ports:
-      - "127.0.0.1:80:8000"
+      - "80:80" # Expose 8000 for nginx
+      - "443:443"
+      - "443:443/udp"
     volumes:
       - ./basic_settings.py:/sio2/deployment/basic_settings.py
       - filetracker:/sio2/deployment/media
