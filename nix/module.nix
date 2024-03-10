@@ -74,13 +74,21 @@ in
       '';
     };
 
+    useCaddy = lib.mkOption {
+      default = true;
+      description = lib.mdDoc ''
+        Disable nginx and use caddy.
+      '';
+      type = lib.types.bool;
+    };
+
     nginx = lib.mkOption {
-      default = null;
+      default = { };
       description = lib.mdDoc ''
         Options for customising the oioioi nginx virtual host.
       '';
       # FIXME: Typecheck this
-      type = lib.types.nullOr lib.types.attrs;
+      type = lib.types.attrs;
     };
 
     useSSL = lib.mkOption {
@@ -90,6 +98,22 @@ in
 
         For this to work SSL has to be set up properly in nginx.
       '';
+    };
+
+    certPath = lib.mkOption {
+      default = null;
+      description = lib.mkDoc ''
+        Path to a tls certificate for caddy/nginx.
+      '';
+      type = lib.types.nullOr lib.types.str;
+    };
+
+    keyPath = lib.mkOption {
+      default = null;
+      description = lib.mkDoc ''
+        Path to a tls key for caddy/nginx.
+      '';
+      type = lib.types.nullOr lib.types.str;
     };
 
     rabbitmqUrl = lib.mkOption {
@@ -241,6 +265,17 @@ in
       notificationsServer = pkgs.callPackage ./notifications-server { };
     in
     lib.mkIf cfg.enable {
+      assertions = [
+        {
+          assertion = (
+            (cfg.keyPath == null -> cfg.certPath == null) &&
+            (cfg.certPath == null -> cfg.keyPath == null)
+          );
+          message = ''
+            Either both or none of `services.oioioi.keyPath` and `services.oioioi.certPath` must be set.
+          '';
+        }
+      ];
       users.extraUsers.sio2 = {
         isSystemUser = true;
         group = "sio2";
@@ -275,6 +310,57 @@ in
 
       environment.systemPackages = [ managePy ];
 
+      services.caddy =
+        let
+          logFormat = ''
+            format filter {
+                wrap console
+                fields {
+                    resp_headers delete
+                    request>headers delete
+                    request>tls delete
+                }
+            }
+          '';
+        in
+        lib.mkIf cfg.useCaddy {
+          enable = true;
+          inherit logFormat;
+          virtualHosts."${cfg.domain}${lib.optionalString (!cfg.useSSL) ":80"}" = {
+            logFormat = logFormat + ''
+              output file /var/log/caddy/access-${cfg.domain}.log
+            '';
+            extraConfig = ''
+              encode gzip
+              request_body max_size 1GiB
+
+              handle_errors {
+                  respond "{err.status_code} {err.status_text}"
+              }
+
+              handle_path /static/* {
+                  root * /var/lib/sio2/static
+                  handle /CACHE/* {
+                      header Cache-Control max-age=31536000 # 1y
+                      file_server {
+                          precompressed gzip
+                      }
+                  }
+                  header Cache-Control max-age=86400 # 1d
+                  file_server
+              }
+
+              reverse_proxy /socket.io/* 127.0.0.1:7887
+              reverse_proxy 127.0.0.1:8000
+            '' + (if cfg.useSSL then
+              (if cfg.certPath != null then ''
+                tls ${cfg.certPath} ${cfg.keyPath}
+              '' else ''
+                tls internal
+              '') else "");
+          };
+        };
+
       services.nginx =
         let
           static_cache_cfg = ''
@@ -286,13 +372,17 @@ in
             expires 1d;
           '';
         in
-        if cfg.nginx != null then {
+        lib.mkIf (!cfg.useCaddy) {
           enable = lib.mkDefault true;
+          recommendedTlsSettings = lib.mkDefault cfg.useSSL;
+
           virtualHosts."oioioi" = {
             forceSSL = cfg.useSSL;
-          } // cfg.nginx // {
+          } // cfg.nginx // (lib.optionalAttrs (cfg.useSSL && cfg.keyPath != null && cfg.certPath != null) {
+            sslCertificateKey = cfg.keyPath;
+            sslCertificate = cfg.certPath;
+          }) // {
             serverName = cfg.domain;
-
             locations."/static/CACHE/" = {
               alias = "/var/lib/sio2/static/CACHE/";
               extraConfig = ''
@@ -334,7 +424,7 @@ in
               keepalive_timeout 360s 360s;
             '';
           };
-        } else { };
+        };
 
       services.postgresql = {
         enable = true;
@@ -358,7 +448,7 @@ in
           # takes precedence over the config and sets logging to stdout-only
           "log.file" = "/var/log/rabbitmq/rabbitmq.log";
           "log.file.level" = "info";
-          "log.file.rotation.size" = builtins.toString (10*1024*1024); # 10 MiB
+          "log.file.rotation.size" = builtins.toString (10 * 1024 * 1024); # 10 MiB
           "log.file.rotation.count" = "5";
         };
       };
@@ -398,13 +488,13 @@ in
 
       systemd.services =
         let
-          mkSioProcess = {
-            name,
-            requiresDatabase ? false,
-            requiresFiletracker ? false,
-            requiresTexlive ? false,
-            ...
-          }@x:
+          mkSioProcess =
+            { name
+            , requiresDatabase ? false
+            , requiresFiletracker ? false
+            , requiresTexlive ? false
+            , ...
+            }@x:
             let
               extraRequires = (lib.optionals requiresDatabase [ "postgresql.service" "sio2-migrate.service" ]) ++ (lib.optional requiresFiletracker "filetracker.service") ++ [ "sio2-rabbitmq.service" ];
             in
@@ -423,7 +513,7 @@ in
                 FILETRACKER_FILE_MODE = "770";
               } // (x.environment or { });
 
-              path = (x.path or []) ++ (lib.optional requiresTexlive package.o-texlive);
+              path = (x.path or [ ]) ++ (lib.optional requiresTexlive package.o-texlive);
 
               serviceConfig = {
                 Type = "simple";
@@ -537,7 +627,8 @@ in
 
             script = ''
               exec ${uwsgi}/bin/uwsgi --plugin ${uwsgi}/lib/uwsgi/python3_plugin.so \
-              -s /var/run/sio2/uwsgi.sock --umask=000 --master-fifo /var/run/sio2/uwsgi.fifo \
+              ${if cfg.useCaddy then "--http :8000" else "-s /var/run/sio2/uwsgi.sock" } \
+              --umask=000 --master-fifo /var/run/sio2/uwsgi.fifo \
               --processes=${if cfg.uwsgi.concurrency == "auto" then "$(nproc)" else builtins.toString cfg.uwsgi.concurrency} \
               --lazy-apps -M --max-requests=5000 --disable-logging --need-app \
               --enable-threads --socket-timeout=30 --ignore-sigpipe \
@@ -572,7 +663,7 @@ in
 
             serviceConfig = {
               ExecStart = ''
-                ${notificationsServer}/bin/notifications-server --port 7887 --amqp ${lib.escapeShellArg cfg.rabbitmqUrl} --url ${finalSimpleSettings.NOTIFICATIONS_SERVER_URL}
+                ${notificationsServer}/bin/notifications-server --port 7887 --amqp ${lib.escapeShellArg cfg.rabbitmqUrl} --url ${if cfg.useCaddy then "http://127.0.0.1:8000/" else finalSimpleSettings.NOTIFICATIONS_SERVER_URL}
               '';
             };
           };
