@@ -1,0 +1,22 @@
+{% extends "base-with-menu.html" %}
+{% load i18n %}
+
+{% block scripts %}
+{{ block.super }}
+{{ form.media }}
+{% endblock %}
+
+{% block title %}{% trans "Make attendance list" %}{% endblock %}
+
+{% block main-content %}
+<h1>{% trans "Make attendance list" %}</h1>
+<form method="post" action="{% url 'talent_att_list_gen_view' %}">
+        {% csrf_token %}
+    	{% include "ingredients/form.html" %}
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">
+            {% trans "Make attendance list" %}
+        </button>
+    </div>
+</form>
+{% endblock %}

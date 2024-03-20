@@ -3,7 +3,7 @@
 
 {% block object-tools-items %}
     {{ block.super }}
-    <a role="button" class="btn btn-outline-success" href="{% url 'make_att_list_pdf' contest_id=request.contest.id %}">
+    <a role="button" class="btn btn-outline-success" href="{% url 'talent_att_list_gen_view' contest_id=request.contest.id %}">
         <i class="fa-solid fa-file-pdf"></i>
         {% trans "Make attendance list" %}
     </a>
