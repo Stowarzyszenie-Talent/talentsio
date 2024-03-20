@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from io import BytesIO
 
 from django.contrib.auth.models import User
@@ -5,10 +6,9 @@ from django.contrib.sites.models import Site
 from django.core.management import call_command
 from django.test.utils import override_settings
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from oioioi.base.tests import TestCase
+from oioioi.base.tests import TestCase, fake_time
 from oioioi.base.utils.pdf import extract_text_from_pdf
 from oioioi.contests.current_contest import ContestMode
 from oioioi.participants.models import Participant
@@ -152,19 +152,37 @@ class TestTalent(TestCase):
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Make attendance list")
+
         att_list_url = reverse(
-            'make_att_list_pdf',
+            'talent_att_list_gen_view',
             kwargs={'contest_id': 'a',},
         )
-        resp = self.client.get(att_list_url)
+        resp = self.client.post(att_list_url, data={'date': "2024-02-01"})
         self.assertEqual(resp.status_code, 200)
-        pdf_data = bytes()
-        for c in resp.streaming_content:
-            pdf_data += c
-        pdf_text = extract_text_from_pdf(BytesIO(pdf_data))[0].decode('utf-8')
-        curr_date = timezone.now().strftime("%d.%m.%Y")
-        for s in ['Grupa A - ' + curr_date, '1.', 'user', 'test', '69']:
+        pdf_data = BytesIO(b"".join(resp.streaming_content))
+        pdf_text = extract_text_from_pdf(pdf_data)[0].decode('utf-8')
+        for s in ['Grupa A - 01.02.2024', '1.', 'user', 'test', '69']:
             self.assertIn(s, pdf_text)
+
+        def get_time(days=0, hours=0, minutes=0):
+            return datetime(2012, 1, 1+days, hours, minutes, tzinfo=timezone.utc)
+
+        for time, date in [
+            (get_time(), get_time(1)),
+            (get_time(1), get_time(1)),
+            (get_time(1, 10), get_time(1)),
+            (get_time(1, 14), get_time(1)),
+            (get_time(1, 14, 6), get_time(2)),
+            (get_time(1, 17), get_time(2)),
+            (get_time(4, 14), get_time(4)),
+            # When there is no future/ongoing contest day, `today` is expected.
+            (get_time(4, 14, 6), get_time(4)),
+            (get_time(4, 17), get_time(4)),
+        ]:
+            with fake_time(time):
+                resp = self.client.get(att_list_url)
+                self.assertEqual(resp.status_code, 200)
+                self.assertContains(resp, date.strftime('%Y-%m-%d'))
 
     def _change_room_number(self, value, should_fail=False):
         prev_value = TalentRegistration.objects.get(user__username="a").room

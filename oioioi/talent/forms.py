@@ -23,3 +23,7 @@ class TalentRegistrationRoomForm(forms.ModelForm):
         model = TalentRegistration
         fields = ['room',]
         field_classes = {'room': TalentRoomFormField}
+
+
+class TalentRegistrationGenAttForm(forms.Form):
+    date = forms.DateField()

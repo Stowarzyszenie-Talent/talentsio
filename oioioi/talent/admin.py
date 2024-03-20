@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 
 from oioioi.base.forms import AlwaysChangedModelForm
 from oioioi.base.permissions import make_request_condition
-from oioioi.base.utils import make_html_link
 from oioioi.contests.admin import (
     contest_site,
     contest_admin_menu_registry,

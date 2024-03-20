@@ -6,7 +6,6 @@ from django.shortcuts import redirect
 from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from oioioi.base.menu import account_menu_registry
@@ -21,6 +20,7 @@ from oioioi.contests.attachment_registration import attachment_registry
 from oioioi.contests.utils import contest_exists, is_contest_admin
 from oioioi.talent.forms import TalentRegistrationRoomForm
 from oioioi.talent.models import TalentRegistration
+from oioioi.talent.forms import TalentRegistrationGenAttForm
 
 
 if settings.CPPREF_URL != "":
@@ -43,23 +43,6 @@ def get_cppreference(request):
         'link': settings.CPPREF_URL,
         'pub_date': datetime.utcfromtimestamp(0),
     }]
-
-
-@enforce_condition(contest_exists & is_contest_admin)
-def make_att_list_pdf(request):
-    qs = TalentRegistration.objects.filter(
-        contest_id=request.contest.id,
-    ).order_by('user__last_name').select_related('user')
-    date = timezone.now().strftime("%d.%m.%Y")
-    tex_code = get_template("talent/attendance_list.tex").render(context={
-        'participants': qs,
-        'contest': request.contest,
-        'curr_date': date,
-    })
-    return generate_pdf(
-        tex_code,
-        "obecnosc_{}_{}.pdf".format(date, request.contest.id.upper()),
-    )
 
 
 @make_request_condition
@@ -96,5 +79,41 @@ def talent_camp_data_view(request):
         context={
             'form': form,
             'talent_registration': tr,
+        },
+    )
+
+
+@enforce_condition(contest_exists & is_contest_admin)
+def talent_att_list_gen_view(request):
+    now = request.timestamp
+    closest_round = request.contest.round_set.filter(
+        results_date__gt=now,
+    ).order_by('start_date').first()
+    if closest_round is not None:
+        initial_date = closest_round.start_date.date()
+    else:
+        initial_date = now
+    form = TalentRegistrationGenAttForm(initial={'date': initial_date})
+    if request.method == 'POST':
+        qs = TalentRegistration.objects.filter(
+            contest_id=request.contest.id,
+        ).order_by('user__last_name').select_related('user')
+        form = TalentRegistrationGenAttForm(request.POST)
+        if form.is_valid():
+            date = datetime.strftime(form.cleaned_data['date'], "%d.%m.%Y")
+            tex_code = get_template("talent/attendance_list.tex").render(context={
+                'participants': qs,
+                'contest': request.contest,
+                'curr_date': date,
+            })
+            return generate_pdf(
+                tex_code,
+                "obecnosc_{}_{}.pdf".format(date, request.contest.id.upper()),
+            )
+    return TemplateResponse(
+        request,
+        'talent/make_att_list.html',
+        context={
+            'form': form,
         },
     )
