@@ -117,13 +117,12 @@ def get_initial_date():
     today = timezone.now().date()
     closest_contest = Contest.objects.filter(round__start_date__gt=today).order_by('round__start_date').first()
     if closest_contest:
-        return closest_contest.round_set.order_by('start_date').first().start_date.strftime('%d.%m.%Y')
+        return closest_contest.round_set.order_by('start_date').first().start_date.strftime('%Y-%m-%d')
     else:
-        return today.strftime('%d.%m.%Y')
+        return today.strftime('%Y-%m-%d')
 
 @enforce_condition(contest_exists & is_contest_admin)
 def talent_att_list_gen_view(request):
-    form = TalentRegistrationGenAttForm(initial={'date': get_initial_date()})
     if request.method == 'POST':
         qs = TalentRegistration.objects.filter(
             contest_id=request.contest.id,
@@ -134,12 +133,15 @@ def talent_att_list_gen_view(request):
             tex_code = get_template("talent/attendance_list.tex").render(context={
                 'participants': qs,
                 'contest': request.contest,
-                'curr_date': date,
+                'date': date,
             })
             return generate_pdf(
                 tex_code,
                 "obecnosc_{}_{}.pdf".format(date, request.contest.id.upper()),
             )
+    else:
+        form = TalentRegistrationGenAttForm(initial={'date': get_initial_date()})
+        
     return TemplateResponse(
         request,
         'talent/make_att_list.html',

@@ -27,6 +27,7 @@ class TalentRegistrationRoomForm(forms.ModelForm):
         field_classes = {'room': TalentRoomFormField}
 
 
+class TalentRegistrationGenAttForm(forms.Form):
     date = forms.DateField(
         input_formats=['%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d'],
         widget=forms.DateInput(
