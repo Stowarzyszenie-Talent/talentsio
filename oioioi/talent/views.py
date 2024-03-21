@@ -123,6 +123,7 @@ def get_initial_date():
 
 @enforce_condition(contest_exists & is_contest_admin)
 def talent_att_list_gen_view(request):
+    form = TalentRegistrationGenAttForm(initial={'date': get_initial_date()})
     if request.method == 'POST':
         qs = TalentRegistration.objects.filter(
             contest_id=request.contest.id,
@@ -133,15 +134,12 @@ def talent_att_list_gen_view(request):
             tex_code = get_template("talent/attendance_list.tex").render(context={
                 'participants': qs,
                 'contest': request.contest,
-                'date': date,
+                'curr_date': date,
             })
             return generate_pdf(
                 tex_code,
                 "obecnosc_{}_{}.pdf".format(date, request.contest.id.upper()),
             )
-    else:
-        form = TalentRegistrationGenAttForm(initial={'date': get_initial_date()})
-        
     return TemplateResponse(
         request,
         'talent/make_att_list.html',
