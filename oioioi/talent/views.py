@@ -24,6 +24,10 @@ from oioioi.talent.models import TalentRegistration
 from oioioi.talent.forms import TalentRegistrationGenAttForm
 
 
+from django.utils import timezone
+from oioioi.contests.models import Contest
+
+
 if settings.CPPREF_URL != "":
     navbar_links_registry.register(
         name='cppreference',
@@ -108,9 +112,18 @@ def talent_camp_data_view(request):
     )
     
 
+
+def get_initial_date():
+    today = timezone.now().date()
+    closest_contest = Contest.objects.filter(round__start_date__gt=today).order_by('round__start_date').first()
+    if closest_contest:
+        return closest_contest.round_set.order_by('start_date').first().start_date.strftime('%d.%m.%Y')
+    else:
+        return today.strftime('%d.%m.%Y')
+
 @enforce_condition(contest_exists & is_contest_admin)
 def talent_att_list_gen_view(request):
-    form = TalentRegistrationGenAttForm()
+    form = TalentRegistrationGenAttForm(initial={'date': get_initial_date()})
     if request.method == 'POST':
         qs = TalentRegistration.objects.filter(
             contest_id=request.contest.id,
@@ -134,3 +147,4 @@ def talent_att_list_gen_view(request):
             'form': form,
         },
     )
+

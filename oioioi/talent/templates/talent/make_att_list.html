@@ -10,7 +10,7 @@
 
 {% block main-content %}
 <h1>{% trans "Make attendance list" %}</h1>
-<form method="post" action="{% url 'talent_att_list_gen_view' %}">
+<form method="post" action="{% url 'talent_att_list_gen_view' contest_id=request.contest.id %}">
         {% csrf_token %}
     	{% include "ingredients/form.html" %}
     <div class="form-group">
