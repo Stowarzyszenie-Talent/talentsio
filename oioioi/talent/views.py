@@ -18,14 +18,11 @@ from oioioi.base.permissions import (
 from oioioi.base.navbar_links import navbar_links_registry
 from oioioi.base.utils.pdf import generate_pdf
 from oioioi.contests.attachment_registration import attachment_registry
+from oioioi.contests.models import Contest
 from oioioi.contests.utils import contest_exists, is_contest_admin
 from oioioi.talent.forms import TalentRegistrationRoomForm
 from oioioi.talent.models import TalentRegistration
 from oioioi.talent.forms import TalentRegistrationGenAttForm
-
-
-from django.utils import timezone
-from oioioi.contests.models import Contest
 
 
 if settings.CPPREF_URL != "":
@@ -48,13 +45,6 @@ def get_cppreference(request):
         'link': settings.CPPREF_URL,
         'pub_date': datetime.utcfromtimestamp(0),
     }]
-
-
-def talent_att_list_gen_parti(request):
-    qs = TalentRegistration.objects.filter(
-        contest_id=request.contest.id,
-    ).order_by('user__last_name').select_related('user')
-    return qs
 
 
 @enforce_condition(contest_exists & is_contest_admin)
@@ -113,17 +103,17 @@ def talent_camp_data_view(request):
     
 
 
-def get_initial_date():
-    today = timezone.now().date()
-    closest_contest = Contest.objects.filter(round__start_date__gt=today).order_by('round__start_date').first()
-    if closest_contest:
-        return closest_contest.round_set.order_by('start_date').first().start_date.strftime('%Y-%m-%d')
-    else:
-        return today.strftime('%Y-%m-%d')
+    
 
 @enforce_condition(contest_exists & is_contest_admin)
 def talent_att_list_gen_view(request):
-    form = TalentRegistrationGenAttForm(initial={'date': get_initial_date()})
+    date_form = timezone.now()
+    closest_round = request.contest.round_set.filter(
+        results_date__gt=timezone.now(),
+    ).order_by('start_date').first()
+    if closest_round is not None:
+        date_form = closest_round.start_date.date()
+    form = TalentRegistrationGenAttForm(initial={'date': date_form})
     if request.method == 'POST':
         qs = TalentRegistration.objects.filter(
             contest_id=request.contest.id,

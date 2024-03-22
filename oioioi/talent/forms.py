@@ -28,10 +28,4 @@ class TalentRegistrationRoomForm(forms.ModelForm):
 
 
 class TalentRegistrationGenAttForm(forms.Form):
-    date = forms.DateField(
-        input_formats=['%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d'],
-        widget=forms.DateInput(
-            format='%Y-%m-%d',
-            attrs={'type': 'date'},
-        ),
-    )
+    date = forms.DateField()
