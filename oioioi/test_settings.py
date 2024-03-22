@@ -141,7 +141,7 @@ LOGGING['loggers']['django.db.backends.schema'] = {
 from datetime import timedelta, datetime
 
 # The day of the trial contest as "%d.%m.%Y"
-TALENT_CAMP_START_DATE = datetime.strftime(datetime.today(), "%d.%m.%Y")
+TALENT_CAMP_START_DATE = "1.1.2012"
 
 # (username, password ("" to prompt), email ("" is ok), first_name, last_name)
 TALENT_DEFAULT_SUPERUSERS = [

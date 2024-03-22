@@ -6,7 +6,6 @@ from django.shortcuts import redirect
 from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from oioioi.base.menu import account_menu_registry
@@ -86,12 +85,14 @@ def talent_camp_data_view(request):
 
 @enforce_condition(contest_exists & is_contest_admin)
 def talent_att_list_gen_view(request):
-    initial_date = timezone.now()
+    now = request.timestamp
     closest_round = request.contest.round_set.filter(
-        results_date__gt=timezone.now(),
+        results_date__gt=now,
     ).order_by('start_date').first()
     if closest_round is not None:
         initial_date = closest_round.start_date.date()
+    else:
+        initial_date = now
     form = TalentRegistrationGenAttForm(initial={'date': initial_date})
     if request.method == 'POST':
         qs = TalentRegistration.objects.filter(

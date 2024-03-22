@@ -19,7 +19,6 @@ from oioioi.problems.utils import get_new_problem_instance
 from oioioi.rankings.controllers import CONTEST_RANKING_KEY
 from oioioi.talent.management.commands.talent_camp_init import OPEN_CONTEST
 
-@override_settings(TALENT_CAMP_START_DATE="1.1.2012")
 class TestTalent(TestCase):
     fixtures = ['test_users',] # 'test_contest']
 
