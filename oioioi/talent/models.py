@@ -30,7 +30,14 @@ class TalentRegistration(models.Model):
         verbose_name=_("room_number_short_desc"),
         null=True,
     )
+
+    class Meta(object):
+        verbose_name = _("Talent registration")
+        verbose_name_plural = _("Talent registrations")
+        ordering = ['user__last_name']
     
+    def __str__(self):
+        return str("{} {} {}".format(self.user, _("inside"), self.contest))
 
 class TalentParentContest(models.Model):
     contest = models.OneToOneField(

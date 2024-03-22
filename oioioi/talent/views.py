@@ -18,7 +18,6 @@ from oioioi.base.permissions import (
 from oioioi.base.navbar_links import navbar_links_registry
 from oioioi.base.utils.pdf import generate_pdf
 from oioioi.contests.attachment_registration import attachment_registry
-from oioioi.contests.models import Contest
 from oioioi.contests.utils import contest_exists, is_contest_admin
 from oioioi.talent.forms import TalentRegistrationRoomForm
 from oioioi.talent.models import TalentRegistration
@@ -45,23 +44,6 @@ def get_cppreference(request):
         'link': settings.CPPREF_URL,
         'pub_date': datetime.utcfromtimestamp(0),
     }]
-
-
-@enforce_condition(contest_exists & is_contest_admin)
-def make_att_list_pdf(request):
-    qs = TalentRegistration.objects.filter(
-        contest_id=request.contest.id,
-    ).order_by('user__last_name').select_related('user')
-    date = timezone.now().strftime("%d.%m.%Y")
-    tex_code = get_template("talent/attendance_list.tex").render(context={
-        'participants': qs,
-        'contest': request.contest,
-        'curr_date': date,
-    })
-    return generate_pdf(
-        tex_code,
-        "obecnosc_{}_{}.pdf".format(date, request.contest.id.upper()),
-    )
 
 
 @make_request_condition
@@ -100,20 +82,17 @@ def talent_camp_data_view(request):
             'talent_registration': tr,
         },
     )
-    
 
-
-    
 
 @enforce_condition(contest_exists & is_contest_admin)
 def talent_att_list_gen_view(request):
-    date_form = timezone.now()
+    initial_date = timezone.now()
     closest_round = request.contest.round_set.filter(
         results_date__gt=timezone.now(),
     ).order_by('start_date').first()
     if closest_round is not None:
-        date_form = closest_round.start_date.date()
-    form = TalentRegistrationGenAttForm(initial={'date': date_form})
+        initial_date = closest_round.start_date.date()
+    form = TalentRegistrationGenAttForm(initial={'date': initial_date})
     if request.method == 'POST':
         qs = TalentRegistration.objects.filter(
             contest_id=request.contest.id,
@@ -137,4 +116,3 @@ def talent_att_list_gen_view(request):
             'form': form,
         },
     )
-
