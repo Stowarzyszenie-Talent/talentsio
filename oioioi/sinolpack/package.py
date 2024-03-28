@@ -825,7 +825,8 @@ class SinolPackage(object):
 
             for test_name, job in jobs.items():
                 if job['result_code'] != 'OK':
-                    output = [str(line, 'utf-8') for line in job['stdout']]
+                    # There seems to be some inconsistency here.
+                    output = [six.ensure_text(line) for line in job['stdout']]
                     raise ProblemPackageError(
                         _("Inwer failed on test %(test)s. Inwer output: %(output)s")
                         % {'test': test_name, 'output': '\n'.join(output)}
