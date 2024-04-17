@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 
 from oioioi.base.permissions import enforce_condition
+from oioioi.clock.views import get_round_times
 from oioioi.contests.models import Round, UserResultForProblem
 from oioioi.contests.utils import contest_exists, is_contest_admin
 from oioioi.phase.controllers import _FirstPhase
@@ -68,9 +69,7 @@ def get_phases_status(request, response):
         qs = Round.objects.filter(contest=contest)
         rounds = []
         cc = contest.controller
-        rtimes_prp = cc.get_round_times_in_bulk(request)
-        for r in qs:
-            rtime = cc.get_round_times(request, r, rtimes_prp)
+        for rtime, r in get_round_times(request):
             if cc.can_see_round(request, r) and rtime.is_active(timestamp):
                 rounds.append(r)
         # Ordered by start date by default

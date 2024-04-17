@@ -219,9 +219,10 @@ class DefaultRankingController(RankingController):
         queryset = self.contest.round_set.all()
         if partial_key != CONTEST_RANKING_KEY:
             queryset = queryset.filter(id=partial_key)
-        times_list = ccontroller.get_round_times_in_bulk(request)
+        # A not-None request enables caching of round times
+        request = request or self._fake_request(1)
         for round in queryset:
-            times = ccontroller.get_round_times(request, round, times_list)
+            times = ccontroller.get_round_times(request, round)
             if can_see_all or times.public_results_visible(timestamp):
                 yield round
 
