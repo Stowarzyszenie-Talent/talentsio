@@ -68,6 +68,14 @@ class UserGroupsDefaultRankingControllerMixin(object):
             rankings.append((user_group_ranking_id(user_group.id), user_group.name))
         return rankings
 
+    def get_all_partial_keys(self, contest):
+        keys = super(
+            UserGroupsDefaultRankingControllerMixin, self
+        ).get_all_partial_keys(contest)
+        for user_group in self._iter_user_groups(True, None):
+            keys.append(str(user_group_ranking_id(user_group.id)))
+        return keys
+
     def keys_for_pi(self, pi):
         raise NotImplementedError
 

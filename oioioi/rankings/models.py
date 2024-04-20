@@ -201,6 +201,10 @@ def recalculate(recalc):
     except Ranking.DoesNotExist:
         return
     ranking_controller = r.controller()
+    if not ranking_controller.validate_ranking(r):
+        r.delete()
+        recalc.delete()
+        return
     serialized, pages_list = ranking_controller.build_ranking(r.key)
     date_after = timezone.now()
     save_recalc_results(recalc, date_before, date_after, serialized, pages_list)

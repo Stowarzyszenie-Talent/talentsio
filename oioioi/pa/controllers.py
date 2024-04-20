@@ -253,6 +253,13 @@ class PARankingController(DefaultRankingController):
                 rankings.append((str(round.id), round.name))
         return rankings
 
+    def get_all_partial_keys(self, contest):
+        keys = [A_PLUS_B_RANKING_KEY, B_RANKING_KEY,]
+        for round in self._iter_rounds(True, 0, CONTEST_RANKING_KEY):
+            if round.is_trial:
+                rankings.append(str(round.id))
+        return rankings
+
     def keys_for_pi(self, pi):
         raise NotImplementedError
 

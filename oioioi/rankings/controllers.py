@@ -86,6 +86,14 @@ class RankingController(RegisteredSubclassesBase, ObjectWithMixins):
     def construct_full_key(self, perm_level, partial_key):
         return perm_level + '#' + partial_key
 
+    def get_all_partial_keys(self, contest):
+        """Returns a list of possible partial keys for a contest."""
+        raise NotImplementedError
+
+    def validate_ranking(self, r):
+        """Returns True if r's key is valid, otherwise False"""
+        raise NotImplementedError
+
     def construct_all_full_keys(self, partial_keys):
         fulls = []
         for perm in self.PERMISSION_LEVELS:
@@ -234,6 +242,19 @@ class DefaultRankingController(RankingController):
         can_see_all = self._key_permission(key) in {'admin', 'observer'}
         partial_key = self.get_partial_key(key)
         return self._iter_rounds(can_see_all, timezone.now(), partial_key)
+
+    def get_all_partial_keys(self, contest):
+        # _iter_rounds should be changed to iter_rounds and standardised.
+        # acm's rankingcontroller uses a slightly different version, but it
+        # still works here.
+        return [CONTEST_RANKING_KEY,] + [
+            str(r.id) for r in self._iter_rounds(True, 0, CONTEST_RANKING_KEY)
+        ]
+
+    def validate_ranking(self, r):
+        return r.key in self.construct_all_full_keys(
+            self.get_all_partial_keys(r.contest)
+        )
 
     def available_rankings(self, request):
         rankings = [(CONTEST_RANKING_KEY, _("Contest"))]
