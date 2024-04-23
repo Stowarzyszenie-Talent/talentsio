@@ -322,6 +322,9 @@ class MockRankingController(DefaultRankingController):
         assert key == "key"
         return self.recalculation_result
 
+    def validate_ranking(self, r):
+        return r.key == "key"
+
 
 class MockRankingContestController(ProgrammingContestController):
     def ranking_controller(self):
