@@ -70,10 +70,7 @@ class Command(BaseCommand):
                         _("Error for user=%(user)s: user does not exist\n")
                         % {'user': login}
                     )
-                    # less strict behaviour from original TalentSio
-                    # ok = False
-                    all_count -= 1
-                    continue
+                    ok = False
                 except DatabaseError as e:
                     # This assumes that we'll get the message in this
                     # encoding. It is not perfect, but much better than

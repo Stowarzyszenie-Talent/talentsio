@@ -2,7 +2,6 @@ from django.template.loader import render_to_string
 
 from oioioi.base.utils import request_cached
 from oioioi.base.permissions import make_request_condition
-from oioioi.base.utils import request_cached
 from oioioi.programs.controllers import ProgrammingContestController
 
 

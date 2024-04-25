@@ -6,7 +6,6 @@ from traceback import format_exception
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core import validators
-from django.core.cache import cache
 from django.core.files.base import ContentFile
 from django.core.validators import validate_slug
 from django.db import models, transaction
@@ -117,7 +116,7 @@ class Problem(models.Model):
         on_delete=models.CASCADE,
     )
 
-    @property
+    @cached_property
     def name(self):
         problem_name = ProblemName.objects.filter(
             problem=self, language=get_language()
