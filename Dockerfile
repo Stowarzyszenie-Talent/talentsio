@@ -29,12 +29,11 @@ RUN apt-get update && \
         sox \
         flite \
         locales \
-        sox \
-        flite \
         nodejs \
         npm \
         python3-pip && \
-    apt-get clean
+    apt-get clean && \
+    rm -rf /usr/share/doc/texlive-doc/
 
 # This is oioioi user linux uid. Setting it is useful in development.
 # By default we use an unused uid of 1234.
