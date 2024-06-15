@@ -26,6 +26,7 @@ from oioioi.base.utils.user_selection import get_user_hints_view
 from oioioi.contests.utils import (
     can_enter_contest,
     contest_exists,
+    is_contest_archived,
     is_contest_basicadmin,
     visible_rounds,
 )
@@ -214,6 +215,7 @@ def messages_view(request):
             'no_email': no_email,
             'onsite': request.contest.controller.is_onsite(),
             'message': get_news_message(request),
+            'is_contest_archived': is_contest_archived(request),
             **template_kwargs,
         },
     )
@@ -366,6 +368,7 @@ def message_view(request, message_id):
         is_contest_basicadmin(request)
         and message.kind == 'QUESTION'
         and message.can_have_replies
+        and not is_contest_archived(request)
     ):
         if request.method == 'POST':
             form = AddReplyForm(request, request.POST)
@@ -405,7 +408,7 @@ def message_view(request, message_id):
     )
 
 
-@enforce_condition(not_anonymous & contest_exists & can_enter_contest)
+@enforce_condition(not_anonymous & contest_exists & can_enter_contest & ~is_contest_archived)
 def add_contest_message_view(request):
     is_admin = is_contest_basicadmin(request)
     if request.method == 'POST':

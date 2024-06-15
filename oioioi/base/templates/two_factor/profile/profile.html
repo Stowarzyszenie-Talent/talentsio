@@ -3,6 +3,10 @@
 {% load two_factor_tags %}
 
 {% block content %}
+  {% comment %}
+    This template is up to date as of 1.15.1
+  {% endcomment %}
+
   <h1>{% block title %}{% trans "Account Security" %}{% endblock %}</h1>
 
   {% if default_device %}

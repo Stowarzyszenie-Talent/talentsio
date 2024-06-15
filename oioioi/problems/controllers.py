@@ -67,7 +67,7 @@ class ProblemController(RegisteredSubclassesBase, ObjectWithMixins):
             return 'IGNORED'
         return 'NORMAL'
 
-    def get_submissions_limit(self, request, problem_instance, kind='NORMAL'):
+    def get_submissions_limit(self, request, problem_instance, kind='NORMAL', noadmin=False):
         # in the future it should always return None as submissions limit
         # for main_problem_instance (without contest) makes no sense and
         # rest of logic should  be moved to contest controller
@@ -75,7 +75,7 @@ class ProblemController(RegisteredSubclassesBase, ObjectWithMixins):
 
         if (
             problem_instance.contest is None
-            or can_admin_problem(request, problem)
+            or (can_admin_problem(request, problem) and not noadmin)
             or kind == 'IGNORED'
         ):
             return None

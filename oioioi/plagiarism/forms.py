@@ -22,7 +22,7 @@ class MossSubmitForm(forms.Form):
         required=True,
     )
     only_final = forms.BooleanField(
-        label=_("Only final submissions"), required=False, initial=True
+        label=_("Only submissions used for final scoring"), required=False, initial=True
     )
     parent_contest = forms.BooleanField(
         label=_("Include submissions from parent contest"),

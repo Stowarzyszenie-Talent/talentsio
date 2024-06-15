@@ -123,15 +123,12 @@ class RegistrationController(RegisteredSubclassesBase, ObjectWithMixins):
             if not hasattr(backend, 'filter_for_perm'):
                 continue
             filt |= (
-                backend.filter_for_perm(Contest, 'contests.contest_admin', request.user)
+                backend.filter_for_perm(Contest, 'contests.contest_basicadmin', request.user)
                 | backend.filter_for_perm(
                     Contest, 'contests.contest_observer', request.user
                 )
                 | backend.filter_for_perm(
                     Contest, 'contests.personal_data', request.user
-                )
-                | backend.filter_for_perm(
-                    Contest, 'contests.contest_basicadmin', request.user
                 )
             )
         return filt
@@ -484,7 +481,7 @@ class ContestController(RegisteredSubclassesBase, ObjectWithMixins):
 
         return sorted(queryset, key=sort_key)
 
-    def can_see_round(self, request_or_context, round):
+    def can_see_round(self, request_or_context, round, no_admin=False):
         """Determines if the current user is allowed to see the given round.
 
         If not, everything connected with this round will be hidden.
@@ -492,7 +489,7 @@ class ContestController(RegisteredSubclassesBase, ObjectWithMixins):
         The default implementation checks if the round is not in the future.
         """
         context = self.make_context(request_or_context)
-        if context.is_admin:
+        if not no_admin and context.is_admin:
             return True
         rtimes = self.get_round_times(request_or_context, round)
         return not rtimes.is_future(context.timestamp)
@@ -523,7 +520,7 @@ class ContestController(RegisteredSubclassesBase, ObjectWithMixins):
     def default_can_see_ranking(self, request_or_context):
         return True
 
-    def can_see_problem(self, request_or_context, problem_instance):
+    def can_see_problem(self, request_or_context, problem_instance, no_admin=False):
         """Determines if the current user is allowed to see the given problem.
 
         If not, the problem will be hidden from all lists, so that its name
@@ -535,9 +532,11 @@ class ContestController(RegisteredSubclassesBase, ObjectWithMixins):
         context = self.make_context(request_or_context)
         if not problem_instance.round:
             return False
-        if context.is_admin:
+        if not no_admin and context.is_admin:
             return True
-        return self.can_see_round(request_or_context, problem_instance.round)
+        return self.can_see_round(
+            request_or_context, problem_instance.round, no_admin=no_admin
+        )
 
 
     def can_see_statement(self, request_or_context, problem_instance):
@@ -598,11 +597,11 @@ class ContestController(RegisteredSubclassesBase, ObjectWithMixins):
             kind = self.get_default_submission_kind(request)
         return Count('submission', filter=Q(submission__user_id=request.user.id, submission__kind=kind))
 
-    def get_submissions_limit(self, request, problem_instance, kind='NORMAL'):
-        if is_contest_basicadmin(request):
+    def get_submissions_limit(self, request, problem_instance, kind='NORMAL', noadmin=False):
+        if is_contest_basicadmin(request) and not noadmin:
             return None
         return problem_instance.problem.controller.get_submissions_limit(
-            request, problem_instance, kind
+            request, problem_instance, kind, noadmin
         )
 
     def get_submissions_left(self, request, problem_instance, kind=None, count=None):
@@ -966,7 +965,7 @@ class PastRoundsHiddenContestControllerMixin(object):
     Do not use it with overlapping rounds.
     """
 
-    def can_see_round(self, request_or_context, round):
+    def can_see_round(self, request_or_context, round, no_admin=False):
         """Decides whether the given round should be shown for the given user.
         The algorithm is as follows:
 
@@ -985,7 +984,7 @@ class PastRoundsHiddenContestControllerMixin(object):
              1. Otherwise the decision is made by the superclass method.
         """
         context = self.make_context(request_or_context)
-        if context.is_admin:
+        if not no_admin and context.is_admin:
             return True
 
         rtimes = self.get_round_times(None, round)
@@ -1001,7 +1000,7 @@ class PastRoundsHiddenContestControllerMixin(object):
                 return False
 
         return super(PastRoundsHiddenContestControllerMixin, self).can_see_round(
-            request_or_context, round
+            request_or_context, round, no_admin
         )
 
 
