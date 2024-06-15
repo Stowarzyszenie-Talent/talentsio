@@ -4,11 +4,13 @@ from oioioi.supervision.utils import can_user_enter_round, ensure_supervision
 from oioioi.contests.controllers import ContestController,RegistrationController
 
 class SupervisionMixinForContestController(object):
-    def can_see_round(self, request_or_context, round):
+    # `noadmin` olewamy na ten moment w kontekście kontroli, bo chcemy pokazywać
+    # pliki do zadań pod kontrolą jako widoczne dla normalnych użytkowników.
+    def can_see_round(self, request_or_context, round, no_admin=False):
         return can_user_enter_round(request_or_context, round) and super(
                 SupervisionMixinForContestController,
                 self,
-                ).can_see_round(request_or_context, round)
+                ).can_see_round(request_or_context, round, no_admin=no_admin)
 
     def can_submit(self, request, problem_instance, check_round_times=True):
         return can_user_enter_round(request, problem_instance.round) and super(
