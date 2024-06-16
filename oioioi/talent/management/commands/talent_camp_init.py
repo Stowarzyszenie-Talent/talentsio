@@ -61,6 +61,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
+        assert not settings.TALENT_DISABLE_CAMP_INIT
+
         with transaction.atomic():
             score1 = settings.TALENT_SCORE1
             score2 = settings.TALENT_SCORE2

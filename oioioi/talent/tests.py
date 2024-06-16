@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from importlib import reload
 from io import BytesIO
 
 from django.contrib.auth.models import User
@@ -14,7 +15,7 @@ from oioioi.contests.current_contest import ContestMode
 from oioioi.participants.models import Participant
 from oioioi.phase.models import Phase
 from oioioi.supervision.models import Membership
-from oioioi.talent.models import TalentRegistration
+from oioioi.talent.models import TalentRegistration, TalentRegistrationSwitch
 
 @override_settings(CONTEST_MODE=ContestMode.neutral)
 class TestTalent(TestCase):
@@ -263,3 +264,33 @@ class TestTalent(TestCase):
         count = Phase.objects.count()
         self.assertEqual(count, Phase.objects.count())
         self.assertEqual(Phase.objects.filter(multiplier=69).count(), 0)
+
+    def test_contest_rules(self):
+        import oioioi.talent.controllers
+        reload(oioioi.talent.controllers)
+        url = reverse('contest_rules', kwargs={'contest_id': 'a'})
+        self.assertTrue(self.client.login(username="admin"))
+        response = self.client.get(url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "21:30")
+        self.assertContains(response, "x0.75")
+        self.assertContains(response, "x0.60")
+
+    @override_settings(TALENT_DISABLE_CAMP_INIT=True)
+    def test_contest_rules_not_camp(self):
+        import oioioi.talent.controllers
+        reload(oioioi.talent.controllers)
+        url = reverse('contest_rules', kwargs={'contest_id': 'a'})
+        self.assertTrue(self.client.login(username="admin"))
+        response = self.client.get(url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "21:30")
+        self.assertContains(response, "x0.75")
+        self.assertContains(response, "x0.60")
+        TalentRegistrationSwitch.objects.all().delete()
+        reload(oioioi.talent.controllers)
+        response = self.client.get(url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "21:30")
+        self.assertNotContains(response, "x0.75")
+        self.assertNotContains(response, "x0.60")

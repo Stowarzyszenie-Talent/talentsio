@@ -37,6 +37,9 @@
 
 # Settings for initialiasing OIOIOI at the start of a Stowarzyszenie Talent's
 # camp by the 'talent_camp_init' command in oioioi.talent
+
+#TALENT_DISABLE_CAMP_INIT = False
+
 from datetime import timedelta, datetime
 
 # The day of the trial contest as "%d.%m.%Y"
