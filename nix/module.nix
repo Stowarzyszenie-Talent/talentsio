@@ -173,14 +173,14 @@ in
 
   config =
     let
-      python = pkgs.python310;
+      python = pkgs.python311;
       package = python.pkgs.callPackage ./package.nix { };
       uwsgi = pkgs.uwsgi.override { plugins = [ "python3" ]; python3 = python; };
       celery = package.celery;
 
-      # The second python310Packages are build packages
-      writePython310 = pkgs.writers.makePythonWriter python pkgs.python310Packages pkgs.python310Packages;
-      writePython310Bin = name: writePython310 "/bin/${name}";
+      # The second python311Packages are build packages
+      writePython311 = pkgs.writers.makePythonWriter python pkgs.python311Packages pkgs.python311Packages;
+      writePython311Bin = name: writePython311 "/bin/${name}";
 
       finalSimpleSettings = baseSettings // (builtins.foldl' (a: b: a // b) { } (builtins.filter builtins.isAttrs cfg.extraSettings)) // {
         SERVER = "uwsgi";
@@ -212,7 +212,7 @@ in
 
       PYTHONPATH = "${settingsDir}:${python.pkgs.makePythonPath [ package ]}:/etc/sio2/";
       DJANGO_SETTINGS_MODULE = "settings";
-      writePythonSio = name: script: writePython310 name { } ''
+      writePythonSio = name: script: writePython311 name { } ''
         # flake8: noqa
         import sys
         import os

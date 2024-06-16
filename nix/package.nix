@@ -20,7 +20,6 @@
 , pyyaml
 , python-dateutil
 , django-two-factor-auth
-, django-formtools
 , celery
 , coreapi
 , django-compressor
@@ -227,7 +226,6 @@ buildPythonPackage rec {
     pyyaml
     python-dateutil
     django-two-factor-auth
-    django-formtools
     o-django-registration-redux
     celery
     coreapi

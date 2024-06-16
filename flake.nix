@@ -1,6 +1,6 @@
 {
   description = "The main component of the SIO2 project";
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/release-23.11";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/release-24.05";
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.filetracker = {
     url = "github:Stowarzyszenie-Talent/filetracker";
@@ -49,7 +49,7 @@
         };
       in
       {
-        packages.default = pkgs.python310Packages.callPackage ./nix/package.nix { };
+        packages.default = pkgs.python311Packages.callPackage ./nix/package.nix { };
         packages.extra-container = extra-container.lib.buildContainers {
           inherit nixpkgs system;
 

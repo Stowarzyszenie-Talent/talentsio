@@ -23,20 +23,19 @@ if os.getuid() == 0:  # root
 # unless specified otherwise.
 requirements = [
     "Django>=4.2,<4.3",
-    "pytz>=2023.3,<2023.4",
+    "pytz==2024.1",
     "SQLAlchemy>=2.0,<2.1",
     "beautifulsoup4>=4.12,<4.13",
     "PyYAML>=6.0,<6.1",
-    "python-dateutil>=2.8,<2.9",
+    "python-dateutil>=2.9,<2.10",
     "django-two-factor-auth>=1.15,<1.16",
-    "django-formtools>=2.4,<2.5",
     "django-registration-redux>=2.12,<2.13",
-    "Celery>=5.3,<5.4", # watch out for sqlalchemy compatibility
+    "Celery>=5.4,<5.5", # watch out for sqlalchemy compatibility
     "coreapi>=2.3,<2.4",
     "dj-pagination>=2.5,<2.6",
-    "django-compressor>=4.3,<4.4",
-    "django-statici18n<2.4",
-    "Pygments>=2.16,<2.17",
+    "django-compressor>=4.4,<4.5",
+    "django-statici18n<2.5",
+    "Pygments>=2.17,<3.0",
     "django-libsass>=0.9,<0.10",
     "django-debug-toolbar",
     "django-extensions>=3.2,<3.3",
@@ -45,7 +44,7 @@ requirements = [
     "pytest>=7.2,<8.0",
     "pytest-cov>=4.0,<5.0",
     "pytest-django>=4.4,<5.0",
-    "pytest-html>=4.0,<4.1",
+    "pytest-html>=4.0,<5.0",
     "pytest-metadata>=3.0,<4.0",
     "pytest-xdist>=3.2,<4.0",
     "requests>=2.31,<2.32",
@@ -53,22 +52,22 @@ requirements = [
     "unicodecsv>=0.14,<0.15",
     "dnslib>=0.9,<0.10",
     "bleach>=6.0,<6.1",
-    "chardet>=5.1,<5.2",
+    "chardet>=5.2,<5.3",
     "django-gravatar2>=1.4,<1.5",
     "django-mptt>=0.13,<0.15",
     "mistune<2.0",   # 2.0 is breaking
     "pika>=1.3,<1.4",
     "Unidecode>=1.3,<1.4",
-    "sentry-sdk>=1.35,<1.36",
-    "fontawesomefree>=6.4,<6.5",
+    "sentry-sdk>=1.35,<2.0",
+    "fontawesomefree>=6.5,<7.0",
     # A library allowing to nest inlines in django admin.
     # Used in quizzes module for adding new quizzes.
     "django-nested-admin>=4.0,<4.1",
     # SIO2 dependencies:
     "filetracker[server]>=2.1,<3.0",
-    "django-simple-captcha>=0.5,<=0.5.18",
+    "django-simple-captcha>=0.6,<0.7",
     "phonenumbers>=8.13,<8.14",
-    "pdfminer.six==20221105",
+    "pdfminer.six==20231228",
     # https://stackoverflow.com/questions/73929564/entrypoints-object-has-no-attribute-get-digital-ocean
     #"importlib-metadata<5.0", # we don't need this
     "supervisor<4.3",  # previously http://github.com/Supervisor/supervisor/zipball/master#egg=supervisor==4.0.0.dev0

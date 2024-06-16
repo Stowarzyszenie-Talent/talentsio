@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.11
 
 ENV PYTHONUNBUFFERED 1
 ENV YES_I_HAVE_THE_RIGHT_TO_USE_THIS_BERKELEY_DB_VERSION 1
@@ -58,8 +58,8 @@ USER oioioi
 
 ENV PATH $PATH:/home/oioioi/.local/bin/
 
-RUN pip3 install --user psycopg2-binary==2.8.6 twisted uwsgi
-RUN pip3 install --user bsddb3==6.2.7
+RUN pip3 install --user psycopg2-binary==2.9.9 twisted uwsgi
+RUN pip3 install --user bsddb3==6.2.9
 
 WORKDIR /sio2/oioioi
 
