@@ -130,6 +130,20 @@ class Command(BaseCommand):
                 }
             )
 
+            contest, _ = Contest.objects.get_or_create(
+                id="t",
+                name="Testy",
+                controller_name=CLOSED_CONTEST,
+            )
+            Round.objects.get_or_create(
+                contest=contest,
+                name="Runda testowa",
+                defaults={
+                    "start_date": today,
+                    "results_date": today,
+                }
+            )
+
             # Supervision groups
             for i in settings.TALENT_SUPERVISED_IDS:
                 group, _ = Group.objects.get_or_create(name=contest_names[i])
