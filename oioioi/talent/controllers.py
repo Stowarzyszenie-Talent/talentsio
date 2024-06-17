@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.db.utils import OperationalError
+from django.db.utils import OperationalError, ProgrammingError
 from django.utils.translation import gettext_lazy as _
 
 from oioioi.contests.models import Contest
@@ -27,7 +27,7 @@ def _is_camp():
             return True
         if len(Contest.objects.filter(id__in=cids)) != len(cids):
             return False
-    except (OperationalError, ImproperlyConfigured):
+    except (OperationalError, ImproperlyConfigured, ProgrammingError):
         pass
     return not settings.TALENT_DISABLE_CAMP_INIT
 
