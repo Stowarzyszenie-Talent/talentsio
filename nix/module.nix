@@ -74,6 +74,14 @@ in
       '';
     };
 
+    caddyServerAliases = lib.mkOption { 
+      default = [];
+      type = lib.types.listOf lib.types.str;
+      description = lib.mkDoc ''
+        Additional domains or IPs for caddy to respond at.
+      '';
+    };
+
     useCaddy = lib.mkOption {
       default = true;
       description = lib.mdDoc ''
@@ -327,6 +335,7 @@ in
           enable = true;
           inherit logFormat;
           virtualHosts."${cfg.domain}${lib.optionalString (!cfg.useSSL) ":80"}" = {
+            serverAliases = cfg.caddyServerAliases;
             logFormat = logFormat + ''
               output file /var/log/caddy/access-${cfg.domain}.log
             '';
