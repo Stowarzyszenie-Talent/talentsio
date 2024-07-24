@@ -347,6 +347,12 @@ in
                   respond "{err.status_code} {err.status_text}"
               }
 
+              handle_path /cppreference/* {
+                  root * ${pkgs.cppreference-doc}/share/cppreference/doc/html
+                  header Cache-Control max-age=86400 # 1d
+                  file_server
+              }
+
               handle_path /static/* {
                   root * /var/lib/sio2/static
                   handle /CACHE/* {
