@@ -637,6 +637,16 @@ class SinolPackage(object):
 
             pdffile = os.path.join(docdir, self.short_name + 'zad' + lang + '.pdf')
 
+            if self.config.get("sinol_contest_type", "") == "talent":
+                texfile = os.path.join(docdir, self.short_name + 'zad' + lang + '.tex')
+                if os.path.isfile(texfile):
+                    logger.info("%s: compiling %s", self.filename, texfile)
+                    execute(['pdflatex', texfile], cwd=docdir)
+                    if not os.path.isfile(pdffile):
+                        raise ProblemPackageError(
+                            _("Problem statement compilation from latex to pdf failed.")
+                        )
+
             if os.path.isfile(pdffile):
                 statement = ProblemStatement(problem=self.problem, language=lang[1:])
                 statement.content.save(

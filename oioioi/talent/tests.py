@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from importlib import reload
 from io import BytesIO
+import os
 
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
@@ -14,8 +15,40 @@ from oioioi.base.utils.pdf import extract_text_from_pdf
 from oioioi.contests.current_contest import ContestMode
 from oioioi.participants.models import Participant
 from oioioi.phase.models import Phase
+from oioioi.problems.models import (
+    Problem,
+    ProblemStatement,
+)
 from oioioi.supervision.models import Membership
 from oioioi.talent.models import TalentRegistration, TalentRegistrationSwitch
+
+
+def get_test_filename(name):
+    return os.path.join(os.path.dirname(__file__), 'files', name)
+
+
+class TestTalentProblemPackages(TestCase):
+    fixtures = ['test_users', 'test_contest']
+
+    def _check_talent_package(self, file, checkstr=None):
+        file = get_test_filename(file + ".zip")
+        call_command("addproblem", file)
+        statements = ProblemStatement.objects.filter()
+        if checkstr is None:
+            self.assertEqual(statements.count(), 0)
+        else:
+            pdfcontent = extract_text_from_pdf(statements.get().content.file)
+            self.assertTrue(checkstr in pdfcontent[0])
+        Problem.objects.all().delete()
+
+    def test_talent_package_compilation(self):
+        self._check_talent_package("no_doc", None)
+        self._check_talent_package("pdf_tex_outdated", b"ZMODYFIKOWANE")
+        for f in (
+            "pdf", "tex", "pdf_tex_current", "pdf_tex_outdated_notalent",
+        ):
+            self._check_talent_package(f, b"Lorem ipsus")
+
 
 @override_settings(CONTEST_MODE=ContestMode.neutral)
 class TestTalent(TestCase):
