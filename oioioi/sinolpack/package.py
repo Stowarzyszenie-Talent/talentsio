@@ -635,17 +635,28 @@ class SinolPackage(object):
                     self.short_name + lang + '.html.zip', File(open(htmlzipfile, 'rb'))
                 )
 
-            pdffile = os.path.join(docdir, self.short_name + 'zad' + lang + '.pdf')
+            docfilebase = self.short_name + 'zad' + lang + '.'
+            docpathbase = os.path.join(docdir, docfilebase)
+
+            pdffile = docpathbase + 'pdf'
 
             if self.config.get("sinol_contest_type", "") == "talent":
-                texfile = os.path.join(docdir, self.short_name + 'zad' + lang + '.tex')
+                texfile = docpathbase + 'tex'
                 if os.path.isfile(texfile):
-                    logger.info("%s: compiling %s", self.filename, texfile)
-                    execute(['pdflatex', texfile], cwd=docdir)
-                    if not os.path.isfile(pdffile):
-                        raise ProblemPackageError(
-                            _("Problem statement compilation from latex to pdf failed.")
-                        )
+                    archivedocbase = os.path.join(
+                        self.short_name, "doc", docfilebase,
+                    )
+                    textime = self.archive.get_mtime(archivedocbase + 'tex')
+                    pdftime = -1
+                    if os.path.isfile(pdffile):
+                        pdftime = self.archive.get_mtime(archivedocbase + 'pdf')
+                    if textime - pdftime > 0.1:
+                        logger.info("%s: compiling %s", self.filename, texfile)
+                        execute(['pdflatex', texfile], cwd=docdir)
+                        if not os.path.isfile(pdffile):
+                            raise ProblemPackageError(
+                                _("Problem statement compilation from latex to pdf failed.")
+                            )
 
             if os.path.isfile(pdffile):
                 statement = ProblemStatement(problem=self.problem, language=lang[1:])
