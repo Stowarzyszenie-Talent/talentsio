@@ -25,6 +25,11 @@ urlpatterns = [
     # login view which can be used to bypass 2FA.
     #   re_path(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     re_path(r'^admin/logout/$', views.logout_view),
+    re_path(
+        r'^all_users_search$',
+        views.all_users_hint_view,
+        name='all_users_search',
+    ),
 ]
 
 urlpatterns += [

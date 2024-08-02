@@ -1110,7 +1110,12 @@ contest_admin_menu_registry.register(
 
 
 class ContestPermissionAdminForm(ModelForm):
-    user = UserSelectionField(label=_("Username"))
+    user = UserSelectionField(label=_("Username"),)
+
+    def __init__(self, *args, **kwargs):
+        super(ContestPermissionAdminForm, self).__init__(*args, **kwargs)
+        # Non-superusers will get 403 on this.
+        self.fields['user'].hints_url = reverse('all_users_search')
 
     class Meta(object):
         model = ContestPermission
