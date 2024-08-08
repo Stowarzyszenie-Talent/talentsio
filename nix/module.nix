@@ -108,6 +108,14 @@ in
       '';
     };
 
+    caddyInternalTLS = lib.mkOption {
+      default = false;
+      description = lib.mdDoc ''
+        Whether to use Caddy's internal CA for missing certificates.
+      '';
+      type = lib.types.bool;
+    };
+
     certPath = lib.mkOption {
       default = null;
       description = lib.mkDoc ''
@@ -277,7 +285,10 @@ in
         {
           assertion = (
             (cfg.keyPath == null -> cfg.certPath == null) &&
-            (cfg.certPath == null -> cfg.keyPath == null)
+            (cfg.certPath == null -> cfg.keyPath == null) &&
+            (cfg.keyPath != null -> cfg.useSSL) &&
+            (cfg.caddyInternalTLS -> cfg.useSSL) &&
+            (cfg.certPath != null -> cfg.caddyInternalTLS == false)
           );
           message = ''
             Either both or none of `services.oioioi.keyPath` and `services.oioioi.certPath` must be set.
@@ -367,12 +378,11 @@ in
 
               reverse_proxy /socket.io/* 127.0.0.1:7887
               reverse_proxy 127.0.0.1:8000
-            '' + (if cfg.useSSL then
-              (if cfg.certPath != null then ''
-                tls ${cfg.certPath} ${cfg.keyPath}
-              '' else ''
-                tls internal
-              '') else "");
+            '' + (if cfg.certPath != null then ''
+              tls ${cfg.certPath} ${cfg.keyPath}
+            '' else "") + (if cfg.caddyInternalTLS then ''
+              tls internal
+            '' else "");
           };
         };
 
