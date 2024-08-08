@@ -38,12 +38,13 @@ account_menu_registry.register(
     lambda request: reverse('auth_password_change'),
     order=100,
 )
-account_menu_registry.register(
-    'two_factor_auth',
-    _("Two factor authentication"),
-    lambda request: reverse('two_factor:profile'),
-    order=150,
-)
+if not settings.HIDE_2FA:
+    account_menu_registry.register(
+        'two_factor_auth',
+        _("Two factor authentication"),
+        lambda request: reverse('two_factor:profile'),
+        order=150,
+    )
 
 
 class ForcedError(Exception):
