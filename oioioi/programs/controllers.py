@@ -180,7 +180,8 @@ class ProgrammingProblemController(ProblemController):
         )
 
     def generate_base_environ(self, environ, submission, **kwargs):
-        contest = submission.problem_instance.contest
+        pi = submission.problem_instance
+        contest = pi.contest
         self.generate_initial_evaluation_environ(environ, submission)
         environ.setdefault('recipe', []).extend(
             [
@@ -194,7 +195,9 @@ class ProgrammingProblemController(ProblemController):
             ('delete_executable', 'oioioi.programs.handlers.delete_executable')
         )
 
-        if getattr(settings, 'USE_UNSAFE_EXEC', False):
+        if getattr(settings, 'USE_UNSAFE_EXEC', False) or (
+            pi.problem_id <= 10583 and contest is not None and contest.id != "23pomorzanka03"
+        ):
             environ['exec_mode'] = 'unsafe'
         else:
             environ[
