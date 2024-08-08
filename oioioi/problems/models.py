@@ -118,10 +118,12 @@ class Problem(models.Model):
 
     @cached_property
     def name(self):
-        problem_name = ProblemName.objects.filter(
-            problem=self, language=get_language()
-        ).first()
-        return problem_name.name if problem_name else self.legacy_name
+        if getattr(settings, 'TESTS', False):
+            problem_name = ProblemName.objects.filter(
+                problem=self, language=get_language()
+            ).first()
+            return problem_name.name if problem_name else self.legacy_name
+        return self.legacy_name
 
     @property
     def controller(self):
