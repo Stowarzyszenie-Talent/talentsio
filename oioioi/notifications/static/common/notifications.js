@@ -82,7 +82,7 @@ function NotificationsClient(serverUrl, sessionId) {
         this.dropdownUpToDate = false;
         this.renderMessages();
     });
-    this.socket = io.connect(this.NOTIF_SERVER_URL);
+    this.socket = io.connect(this.NOTIF_SERVER_URL, {transports: ["websocket", "polling"]});
     this.socket.on('connect', this.authenticate.bind(this));
     this.socket.emits = function (k, v) {
         this.socket.emit(k, JSON.stringify(v));

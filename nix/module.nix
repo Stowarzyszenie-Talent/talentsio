@@ -376,7 +376,9 @@ in
                   file_server
               }
 
-              reverse_proxy /socket.io/* 127.0.0.1:7887
+              reverse_proxy /socket.io/* 127.0.0.1:7887 {
+                  header_down +Cache-Control max-age=3600 # 1h
+              }
               reverse_proxy 127.0.0.1:8000
             '' + (if cfg.certPath != null then ''
               tls ${cfg.certPath} ${cfg.keyPath}
