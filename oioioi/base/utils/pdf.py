@@ -4,11 +4,8 @@ import os.path
 import shutil
 import tempfile
 
-import pdfminer.layout
+from django.conf import settings
 from django.core.files.base import File
-from pdfminer.converter import TextConverter
-from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
-from pdfminer.pdfpage import PDFPage
 
 from oioioi.base.utils.execute import execute
 from oioioi.filetracker.utils import stream_file
@@ -49,6 +46,14 @@ def extract_text_from_pdf(pdf_file):
     # many lines, sometimes out-of-reasonable-orded
     # the value needs to be high enough so that char_width * char_margin > page_width
 
+    # cryptography imported by pdfminer causes some segfaults when uwsgi tries
+    # to gracefully exit, let's not waste more time investigating it and just
+    # disable it for prod, as it's only used in tests.
+    assert getattr(settings, 'TESTS', False)
+    import pdfminer.layout
+    from pdfminer.converter import TextConverter
+    from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
+    from pdfminer.pdfpage import PDFPage
     laparams = pdfminer.layout.LAParams(char_margin=2000)
 
     pages = []
