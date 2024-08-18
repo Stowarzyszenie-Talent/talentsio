@@ -22,7 +22,7 @@ def get_allowed_languages_extensions(problem_instance):
 
 
 def get_language_by_extension(problem_instance, ext):
-    for lang, extension_list in get_allowed_languages_dict(problem_instance).items():
+    for lang, extension_list in getattr(settings, 'SUBMITTABLE_EXTENSIONS', {}).items():
         if ext in extension_list:
             return lang
     return None
