@@ -427,9 +427,7 @@ class ProgrammingProblemController(ProblemController):
         submission.save()
 
     def get_submission_size_limit(self, problem_instance): # in bytes
-        return ExtraConfig.objects.get(
-            problem_id=problem_instance.problem_id,
-        ).parsed_config.get(
+        return problem_instance.problem.extraconfig.parsed_config.get(
             'submission_size_limit',
             settings.DEFAULT_SUBMISSION_SIZE_LIMIT,
         )
