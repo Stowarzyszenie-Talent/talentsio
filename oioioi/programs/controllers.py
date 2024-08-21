@@ -550,11 +550,13 @@ class ProgrammingProblemController(ProblemController):
             problem_instance.controller.judge(submission)
         return submission
 
-    def _add_langs_to_form(self, request, form, problem_instance):
+    def _add_langs_to_form(self, request, form, problem_instance, allowed_langs=None):
         controller = problem_instance.controller
+        if allowed_langs is None:
+            allowed_langs = get_allowed_languages_dict(problem_instance)
 
         choices = []
-        for lang in get_allowed_languages_dict(problem_instance).keys():
+        for lang in allowed_langs.keys():
             compiler_name = None
             compiler = controller.get_compiler_for_language(problem_instance, lang)
             if compiler is not None:
@@ -599,6 +601,8 @@ class ProgrammingProblemController(ProblemController):
                         return None
             return problem_id
 
+        allowed_langs = get_allowed_languages_dict(problem_instance)
+
         form.fields['file'] = forms.FileField(
             required=False,
             widget=CancellableFileInput,
@@ -613,7 +617,9 @@ class ProgrammingProblemController(ProblemController):
                     " choosing file."
                     " <strong>Try drag-and-drop too!</strong>"
                 )
-                % (', '.join(get_allowed_languages_extensions(problem_instance)))
+                % (', '.join(get_allowed_languages_extensions(
+                    problem_instance, allowed_langs,
+                )))
             ),
         )
         form.fields['file'].widget.attrs.update(
@@ -660,7 +666,7 @@ class ProgrammingProblemController(ProblemController):
             widget=code_widget
         )
 
-        self._add_langs_to_form(request, form, problem_instance)
+        self._add_langs_to_form(request, form, problem_instance, allowed_langs)
 
         if 'dropped_solution' in request.POST:
             form.fields['code'].initial = request.POST['dropped_solution']
