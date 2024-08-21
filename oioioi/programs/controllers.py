@@ -117,13 +117,16 @@ class ProgrammingProblemController(ProblemController):
             logger.warning("No default compiler for language %s", language)
             return 'default-' + extension
 
-    def get_compiler_for_language(self, problem_instance, language):
-        problem = problem_instance.problem
-        problem_compiler_qs = ProblemCompiler.objects.filter(
-            problem__exact=problem.id, language__exact=language
-        )
-        if problem_compiler_qs.exists():
-            return problem_compiler_qs.first().compiler
+    def get_compiler_for_language(self, problem_instance, language, problem_compilers=None):
+        if problem_compilers is None:
+            problem_compiler = ProblemCompiler.objects.filter(
+                problem=problem_instance.problem_id,
+                language__exact=language, # Why is the __exact here?
+            ).first()
+        else:
+            problem_compiler = problem_compilers.get(language, None)
+        if problem_compiler:
+            return problem_compiler.compiler
         else:
             default_compilers = getattr(settings, 'DEFAULT_COMPILERS')
             compiler = default_compilers.get(language)
@@ -550,13 +553,21 @@ class ProgrammingProblemController(ProblemController):
 
     def _add_langs_to_form(self, request, form, problem_instance, allowed_langs=None):
         controller = problem_instance.controller
+        problem = problem_instance.problem
         if allowed_langs is None:
             allowed_langs = get_allowed_languages_dict(problem_instance)
 
         choices = []
+        # Precompute to cut the number of db queries
+        problem_compilers = {
+            pc.language: pc for pc in problem.problemcompiler_set.all()
+        }
+
         for lang in allowed_langs.keys():
             compiler_name = None
-            compiler = controller.get_compiler_for_language(problem_instance, lang)
+            compiler = controller.get_compiler_for_language(
+                problem_instance, lang, problem_compilers,
+            )
             if compiler is not None:
                 available_compilers = getattr(settings, 'AVAILABLE_COMPILERS', {})
                 compilers_for_language = available_compilers.get(lang)
@@ -938,7 +949,7 @@ class ProgrammingContestController(ContestController):
             submission
         )
 
-    def get_compiler_for_language(self, problem_instance, language):
+    def get_compiler_for_language(self, problem_instance, language, problem_compilers=None):
         contest = problem_instance.contest
         problem = problem_instance.problem
         contest_compiler_qs = ContestCompiler.objects.filter(
@@ -948,7 +959,7 @@ class ProgrammingContestController(ContestController):
             return contest_compiler_qs.first().compiler
         else:
             return problem.controller.get_compiler_for_language(
-                problem_instance, language
+                problem_instance, language, problem_compilers=problem_compilers,
             )
 
     def _map_report_to_submission_status(
