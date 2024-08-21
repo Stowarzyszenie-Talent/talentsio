@@ -952,11 +952,13 @@ class ProgrammingContestController(ContestController):
     def get_compiler_for_language(self, problem_instance, language, problem_compilers=None):
         contest = problem_instance.contest
         problem = problem_instance.problem
-        contest_compiler_qs = ContestCompiler.objects.filter(
-            contest__exact=contest, language__exact=language
-        )
-        if contest_compiler_qs.exists():
-            return contest_compiler_qs.first().compiler
+        # Let's cache, as we will probably be ran for a few langs for this pi.
+        if not hasattr(contest, '_compilers_cache'):
+            contest._compilers_cache = {
+                cc.language: cc for cc in contest.contestcompiler_set.all()
+            }
+        if language in contest._compilers_cache:
+            return contest._compilers_cache[language].compiler
         else:
             return problem.controller.get_compiler_for_language(
                 problem_instance, language, problem_compilers=problem_compilers,
