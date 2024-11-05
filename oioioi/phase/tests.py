@@ -116,11 +116,11 @@ class TestTalent(TestCase):
         self.assertContains(response, '>80<')
 
         # Check with different permissions
-        self.check_modes([20, 100, 77])
+        self.check_modes([80, 100, 95])
         self.client.logout()
-        self.check_modes([20, 100, 77])
+        self.check_modes([80, 100, 95])
         self.assertTrue(self.client.login(username='test_user'))
-        self.check_modes([20, 100, 77])
+        self.check_modes([80, 100, 95])
 
         self.check_problemlist_score(100)
 
@@ -135,8 +135,8 @@ class TestTalent(TestCase):
         )
         self.assertEqual(Submission.objects.count(), 5)
 
-        self.check_modes([20, 80, 65])
-        self.check_problemlist_score(80)
+        self.check_modes([80, 100, 95])
+        self.check_problemlist_score(100)
 
         self.assertTrue(self.client.login(username='test_user'))
         recalc_url = reverse('recalculate_scores', kwargs=self.c_kwargs)
@@ -151,7 +151,7 @@ class TestTalent(TestCase):
         # This doesn't trigger recalculation.
         scrcc.reveal_limit = 69420
         scrcc.save()
-        self.check_modes([20, 80, 65])
+        self.check_modes([80, 100, 95])
         response = self.client.post(recalc_url, follow=True)
         self.assertContains(response, 'Success')
         self.check_modes([80, 100, 95])
@@ -162,5 +162,5 @@ class TestTalent(TestCase):
         self.assertTrue(self.client.login(username='test_admin'))
         response = self.client.post(recalc_url, follow=True)
         self.assertContains(response, 'Success')
-        self.check_modes([20, 80, 65])
-        self.check_problemlist_score(80)
+        self.check_modes([80, 100, 95])
+        self.check_problemlist_score(100)
