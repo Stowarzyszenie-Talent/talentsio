@@ -138,9 +138,12 @@ class SinolPackage(object):
         self.memory_limits = None
         self.statement_memory_limit = None
         self.prog_archive = None
+        c_args = C_EXTRA_ARGS.copy()
+        if settings.SITE_NAME == "Wyzwania":
+            c_args.remove("-Werror")
         self.extra_compilation_args = {
-            'c': C_EXTRA_ARGS,
-            'cpp': C_EXTRA_ARGS,
+            'c': c_args,
+            'cpp': c_args,
             'pas': PAS_EXTRA_ARGS,
         }
         self.use_make = settings.USE_SINOLPACK_MAKEFILES
