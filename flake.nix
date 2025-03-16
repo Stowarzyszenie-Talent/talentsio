@@ -6,6 +6,10 @@
     url = "github:Stowarzyszenie-Talent/filetracker";
     inputs.nixpkgs.follows = "nixpkgs";
   };
+  inputs.filetracker-rs = {
+    url = "github:afishhh/filetracker-rs";
+    inputs.flake-utils.follows = "flake-utils";
+  };
   inputs.sioworkers = {
     url = "github:Stowarzyszenie-Talent/sioworkers";
     inputs.nixpkgs.follows = "nixpkgs";
@@ -16,11 +20,14 @@
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, flake-utils, filetracker, sioworkers, extra-container }:
+  outputs = { self, nixpkgs, flake-utils, filetracker, filetracker-rs, sioworkers, extra-container }:
     let
       overlays = [
         sioworkers.overlays.default
         filetracker.overlays.default
+        (final: prev: {
+          filetracker-rs = filetracker-rs.packages.${prev.system}.default;
+        })
       ];
 
       module = { pkgs, lib, config, ... }: import ./nix/module.nix {
@@ -38,6 +45,7 @@
 
         imports = [
           filetracker.nixosModules.default
+          filetracker-rs.nixosModules.default
           sioworkers.nixosModules.self
           module
         ];

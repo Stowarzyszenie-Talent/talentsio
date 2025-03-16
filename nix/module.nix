@@ -133,7 +133,7 @@ in
     };
 
     filetrackerUrl = lib.mkOption {
-      default = "http://127.0.0.1:${config.services.filetracker.port}/";
+      default = "http://127.0.0.1:${config.services.filetracker-rs.port}/";
       description = "The Filetracker URL SIO2 processes should connect to";
       type = lib.types.str;
     };
@@ -288,7 +288,7 @@ in
         isSystemUser = true;
         group = "sio2";
       };
-      services.filetracker.ensureFiles =
+      services.filetracker-rs.ensureFiles =
         let
           base_url = "https://otsrv.net/sandboxes";
         in

@@ -6,7 +6,7 @@
   networking.hostName = "oioioi";
   networking.domain = "local";
 
-  services.filetracker = {
+  services.filetracker-rs = {
     enable = true;
   };
 
