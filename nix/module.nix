@@ -74,8 +74,8 @@ in
       '';
     };
 
-    caddyServerAliases = lib.mkOption { 
-      default = [];
+    caddyServerAliases = lib.mkOption {
+      default = [ ];
       type = lib.types.listOf lib.types.str;
       description = lib.mkDoc ''
         Additional domains or IPs for caddy to respond at.

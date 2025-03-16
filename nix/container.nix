@@ -49,5 +49,6 @@
     # For the `filetracker` CLI
     filetracker
     python3
+    neovim
   ];
 }
