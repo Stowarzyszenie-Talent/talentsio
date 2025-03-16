@@ -29,13 +29,15 @@
   };
 
   # For ssl stapling
-  #services.nginx.resolver.addresses = [ "1.1.1.1" ];
-  #services.nginx.recommendedTlsSettings = true;
+  # services.nginx.resolver.addresses = [ "1.1.1.1" ];
+  # services.nginx.recommendedTlsSettings = true;
 
+  services.sioworker.filetrackerUrl = "http://127.0.0.1:9999";
   services.oioioi = {
     enable = true;
-    #domain = "example.com";
-    #useSSL = true;
+    # domain = "example.com";
+    useCaddy = false;
+    # useSSL = true;
     nginx = {
       #sslCertificateKey = "/foo.key" ;
       #sslCertificate = "/foo.pem";
