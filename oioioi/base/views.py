@@ -2,6 +2,7 @@ import traceback
 from django.conf import settings
 
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.auth.models import User
 from django.contrib.auth.views import LogoutView as AuthLogoutView
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.http import HttpResponse, HttpResponseForbidden
@@ -19,12 +20,17 @@ from two_factor.views import LoginView as Login2FAView
 import oioioi.base.forms
 from oioioi.base.forms import handle_new_preference_fields
 from oioioi.base.menu import account_menu_registry
-from oioioi.base.permissions import enforce_condition, not_anonymous
+from oioioi.base.permissions import (
+    enforce_condition,
+    is_superuser,
+    not_anonymous,
+)
 from oioioi.base.preferences import PreferencesFactory, ensure_preferences_exist_for_user
 from oioioi.base.processors import site_name
 from oioioi.base.utils import generate_key, is_ajax, jsonify
 from oioioi.base.utils.redirect import safe_redirect
 from oioioi.base.utils.user import has_valid_username
+from oioioi.base.utils.user_selection import get_user_hints_view
 
 account_menu_registry.register(
     'change_password',
@@ -32,12 +38,13 @@ account_menu_registry.register(
     lambda request: reverse('auth_password_change'),
     order=100,
 )
-account_menu_registry.register(
-    'two_factor_auth',
-    _("Two factor authentication"),
-    lambda request: reverse('two_factor:profile'),
-    order=150,
-)
+if not settings.HIDE_2FA:
+    account_menu_registry.register(
+        'two_factor_auth',
+        _("Two factor authentication"),
+        lambda request: reverse('two_factor:profile'),
+        order=150,
+    )
 
 
 class ForcedError(Exception):
@@ -187,3 +194,9 @@ def delete_account_view(request):
 
 def generate_key_view(request):
     return HttpResponse(generate_key())
+
+
+@enforce_condition(is_superuser)
+def all_users_hint_view(request):
+    queryset = User.objects.all()
+    return get_user_hints_view(request, 'substr', queryset)

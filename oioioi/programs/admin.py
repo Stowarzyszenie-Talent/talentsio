@@ -351,6 +351,11 @@ class ProblemPackageAdminMixin(object):
                 pass
         return actions
 
+    def get_custom_list_select_related(self):
+        return super(
+            ProblemPackageAdminMixin, self,
+        ).get_custom_list_select_related() + ['problem__main_problem_instance']
+
 
 ProblemPackageAdmin.mix_in(ProblemPackageAdminMixin)
 

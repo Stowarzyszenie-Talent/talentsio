@@ -208,8 +208,9 @@ buildPythonPackage rec {
     o-texlive = (
       pkgs.texlive.combine { inherit (pkgs.texlive)
         scheme-small collection-langpolish collection-fontsrecommended
-        pst-barcode tex-gyre marginnote pstricks auto-pst-pdf catchfile pst-pdf
-        pslatex a4wide fancyhdr luatex85 preview environ zref;
+        collection-latexrecommended collection-latexextra
+        pst-barcode tex-gyre pstricks auto-pst-pdf pst-pdf
+        pslatex luatex85 epsf;
     });
     inherit celery;
   };

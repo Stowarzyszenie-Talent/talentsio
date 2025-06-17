@@ -285,6 +285,7 @@ INSTALLED_APPS = (
     'oioioi.workers',
     'oioioi.quizzes',
     'oioioi._locale',
+    'oioioi.interactive',
 
     'djsupervisor',
     'registration',
@@ -898,3 +899,5 @@ TALENT_CONTEST_IDS = []
 TALENT_ROOM_REGEX = r'^([1-9][0-9]{0,2}|Rodzinny)$'
 
 SITE_DOMAIN = "example.com"
+
+HIDE_2FA = False

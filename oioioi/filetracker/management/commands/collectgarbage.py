@@ -1,16 +1,29 @@
 from __future__ import print_function
 
+from concurrent.futures import ProcessPoolExecutor
 import datetime
 import itertools
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.apps import apps
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
+from filetracker.client import Client
 from filetracker.utils import split_name
 
-from oioioi.filetracker.client import get_client
 
+client = Client(remote_url=settings.FILETRACKER_URL, local_store=None)
+
+def set_client():
+    global client
+    client = Client(remote_url=settings.FILETRACKER_URL, local_store=None)
+
+def delete_file(args):
+    global client
+    if args[2] > 1:
+        print(" " + args[0])
+    client.delete_file('/' + args[0] + '@' + args[1])
 
 class Command(BaseCommand):
     help = _("Delete all orphaned files older than specified number of days.")
@@ -28,6 +41,15 @@ class Command(BaseCommand):
                 "be deleted. Default value is 30."
             ),
             metavar=_("DAYS"),
+        )
+        parser.add_argument(
+            '-n',
+            '--paralell',
+            action='store',
+            type=int,
+            dest='workers',
+            default=0,
+            help=_("How many files to delete in paralell."),
         )
         parser.add_argument(
             '-p',
@@ -63,18 +85,23 @@ class Command(BaseCommand):
         return result
 
     def handle(self, *args, **options):
+        assert options['workers'] >= 0
+        print("Getting needed files...")
         needed_files = self._get_needed_files()
-        all_files = get_client().list_remote_files()
+        print("Got needed files.")
+        print("Getting list of files on filetracker...")
+        all_files = client.list_remote_files()
+        print("Got list of files on filetracker.")
         all_files = [f for f in all_files if not f[0].startswith("sandboxes")]
-        max_date_to_delete = datetime.datetime.now() - datetime.timedelta(
+        max_date_to_delete = int((datetime.datetime.now() - datetime.timedelta(
             days=options['days']
-        )
+        )).timestamp())
         diff = set([f[0] for f in all_files]) - set(needed_files)
         to_delete = [
             f[0]
             for f in all_files
             if f[0] in diff
-            and datetime.datetime.fromtimestamp(f[1]) < max_date_to_delete
+            and f[1] < max_date_to_delete # f[1] is a timestamp
         ]
 
         files_count = len(to_delete)
@@ -116,7 +143,14 @@ class Command(BaseCommand):
                     ngettext("Deleting %d file", "Deleting %d files", files_count)
                     % files_count
                 )
-            for file in to_delete:
-                if int(options['verbosity']) > 1:
-                    print(" ", file)
-                get_client().delete_file('/' + file)
+            timestamp = str(max_date_to_delete)
+            if options['workers'] == 0:
+                for file in to_delete:
+                    delete_file((file, timestamp, options['verbosity']))
+            else:
+                print(f"Starting {str(options['workers'])} paralell workers.")
+                with ProcessPoolExecutor(max_workers=options['workers'], initializer=set_client) as pool:
+                    len([*pool.map(delete_file, [
+                        (file, timestamp, options['verbosity']) for file in to_delete
+                    ])])
+                print("Done.")

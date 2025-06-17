@@ -90,7 +90,8 @@ def visible_messages(request, author=None, category=None, kind=None):
         messages = messages.filter(q_expression, q_time)
 
     return messages.select_related(
-        'top_reference', 'author', 'problem_instance', 'problem_instance__problem'
+        'top_reference', 'author', 'problem_instance',
+        'problem_instance__problem', 'round',
     )
 
 
@@ -232,7 +233,7 @@ def all_contests_messages_view(request):
         request,
         Message.objects.order_by('-date').select_related(
             'top_reference', 'author', 'problem_instance',
-            'problem_instance__problem', 'contest',
+            'problem_instance__problem', 'contest', 'round',
         ),
     )
     return TemplateResponse(

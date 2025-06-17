@@ -109,9 +109,9 @@ def get_contest_permissions(request, response):
     return response
 
 
-@menu_registry.register_decorator(
-    _("Rules"), lambda request: reverse('contest_rules'), order=90
-)
+#@menu_registry.register_decorator(
+#    _("Rules"), lambda request: reverse('contest_rules'), order=90
+#)
 @enforce_condition(contest_exists & can_enter_contest & are_rules_visible)
 def contest_rules_view(request):
     no_of_rounds = get_number_of_rounds(request)

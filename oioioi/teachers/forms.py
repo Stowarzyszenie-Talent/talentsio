@@ -26,7 +26,7 @@ class AddTeacherForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AddTeacherForm, self).__init__(*args, **kwargs)
-        self.fields['user'].hints_url = reverse('user_search')
+        self.fields['user'].hints_url = reverse('non_teacher_search')
 
     school = forms.CharField(
         label=_("School"),
@@ -62,7 +62,7 @@ class AdminTeacherForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AdminTeacherForm, self).__init__(*args, **kwargs)
-        self.fields['user'].hints_url = reverse('user_search')
+        self.fields['user'].hints_url = reverse('non_teacher_search')
         instance_user = None
         if 'instance' in kwargs:
             instance = kwargs['instance']

@@ -237,12 +237,12 @@ def get_contest_problem_statement_config(request):
     return ProblemStatementConfig.objects.filter(contest=request.contest).first()
     
 
-@request_cached
-def submittable_problem_instances(request):
+@request_cached_complex
+def submittable_problem_instances(request, extra_select_related=()):
     controller = request.contest.controller
     queryset = (
         ProblemInstance.objects.filter(contest=request.contest)
-        .select_related('problem', 'contest')
+        .select_related('problem', 'contest', *extra_select_related)
         .prefetch_related('round')
     )
     return [pi for pi in queryset if controller.can_submit(request, pi)]

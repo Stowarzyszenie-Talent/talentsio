@@ -659,6 +659,8 @@ class ProblemPackageAdmin(admin.ModelAdmin):
         return super(ProblemPackageAdmin, self).get_custom_list_select_related() + [
             'problem',
             'problem__contest',
+            'contest',
+            'created_by',
         ]
 
 

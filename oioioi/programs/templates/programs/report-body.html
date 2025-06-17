@@ -27,10 +27,12 @@
                                 {% if test.test_id %}
                                     <small>
                                         {% if is_admin %}
-                                            <a title='{% trans "Download output for this test" %}'
-                                               href="{% url 'download_output_file' test_id=test.test_id %}">
-                                                out
-                                            </a>
+                                            {% if test.test.output_file %}
+                                                <a title='{% trans "Download output for this test" %}'
+                                                href="{% url 'download_output_file' test_id=test.test_id %}">
+                                                    out
+                                                </a>
+                                            {% endif %}
                                             <a title='{% trans "Download input for this test" %}'
                                                href="{% url 'download_input_file' test_id=test.test_id %}">
                                                 in

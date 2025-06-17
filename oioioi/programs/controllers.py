@@ -117,13 +117,16 @@ class ProgrammingProblemController(ProblemController):
             logger.warning("No default compiler for language %s", language)
             return 'default-' + extension
 
-    def get_compiler_for_language(self, problem_instance, language):
-        problem = problem_instance.problem
-        problem_compiler_qs = ProblemCompiler.objects.filter(
-            problem__exact=problem.id, language__exact=language
-        )
-        if problem_compiler_qs.exists():
-            return problem_compiler_qs.first().compiler
+    def get_compiler_for_language(self, problem_instance, language, problem_compilers=None):
+        if problem_compilers is None:
+            problem_compiler = ProblemCompiler.objects.filter(
+                problem=problem_instance.problem_id,
+                language__exact=language, # Why is the __exact here?
+            ).first()
+        else:
+            problem_compiler = problem_compilers.get(language, None)
+        if problem_compiler:
+            return problem_compiler.compiler
         else:
             default_compilers = getattr(settings, 'DEFAULT_COMPILERS')
             compiler = default_compilers.get(language)
@@ -180,7 +183,8 @@ class ProgrammingProblemController(ProblemController):
         )
 
     def generate_base_environ(self, environ, submission, **kwargs):
-        contest = submission.problem_instance.contest
+        pi = submission.problem_instance
+        contest = pi.contest
         self.generate_initial_evaluation_environ(environ, submission)
         environ.setdefault('recipe', []).extend(
             [
@@ -194,7 +198,10 @@ class ProgrammingProblemController(ProblemController):
             ('delete_executable', 'oioioi.programs.handlers.delete_executable')
         )
 
-        if getattr(settings, 'USE_UNSAFE_EXEC', False):
+        if getattr(settings, 'USE_UNSAFE_EXEC', False) or (
+            settings.SITE_NAME == "Wyzwania" and pi.problem_id <= 10583 and
+            contest is not None and contest.id != "23pomorzanka03"
+        ):
             environ['exec_mode'] = 'unsafe'
         else:
             environ[
@@ -423,9 +430,7 @@ class ProgrammingProblemController(ProblemController):
         submission.save()
 
     def get_submission_size_limit(self, problem_instance): # in bytes
-        return ExtraConfig.objects.get(
-            problem_id=problem_instance.problem_id,
-        ).parsed_config.get(
+        return problem_instance.problem.extraconfig.parsed_config.get(
             'submission_size_limit',
             settings.DEFAULT_SUBMISSION_SIZE_LIMIT,
         )
@@ -546,13 +551,23 @@ class ProgrammingProblemController(ProblemController):
             problem_instance.controller.judge(submission)
         return submission
 
-    def _add_langs_to_form(self, request, form, problem_instance):
+    def _add_langs_to_form(self, request, form, problem_instance, allowed_langs=None):
         controller = problem_instance.controller
+        problem = problem_instance.problem
+        if allowed_langs is None:
+            allowed_langs = get_allowed_languages_dict(problem_instance)
 
         choices = []
-        for lang in get_allowed_languages_dict(problem_instance).keys():
+        # Precompute to cut the number of db queries
+        problem_compilers = {
+            pc.language: pc for pc in problem.problemcompiler_set.all()
+        }
+
+        for lang in allowed_langs.keys():
             compiler_name = None
-            compiler = controller.get_compiler_for_language(problem_instance, lang)
+            compiler = controller.get_compiler_for_language(
+                problem_instance, lang, problem_compilers,
+            )
             if compiler is not None:
                 available_compilers = getattr(settings, 'AVAILABLE_COMPILERS', {})
                 compilers_for_language = available_compilers.get(lang)
@@ -595,6 +610,8 @@ class ProgrammingProblemController(ProblemController):
                         return None
             return problem_id
 
+        allowed_langs = get_allowed_languages_dict(problem_instance)
+
         form.fields['file'] = forms.FileField(
             required=False,
             widget=CancellableFileInput,
@@ -609,7 +626,9 @@ class ProgrammingProblemController(ProblemController):
                     " choosing file."
                     " <strong>Try drag-and-drop too!</strong>"
                 )
-                % (', '.join(get_allowed_languages_extensions(problem_instance)))
+                % (', '.join(get_allowed_languages_extensions(
+                    problem_instance, allowed_langs,
+                )))
             ),
         )
         form.fields['file'].widget.attrs.update(
@@ -656,7 +675,7 @@ class ProgrammingProblemController(ProblemController):
             widget=code_widget
         )
 
-        self._add_langs_to_form(request, form, problem_instance)
+        self._add_langs_to_form(request, form, problem_instance, allowed_langs)
 
         if 'dropped_solution' in request.POST:
             form.fields['code'].initial = request.POST['dropped_solution']
@@ -737,8 +756,9 @@ class ProgrammingProblemController(ProblemController):
         group_reports = dict((g.group, g) for g in group_reports)
 
         picontroller = problem_instance.controller
+        pcontroller = problem_instance.problem.controller
 
-        allow_download_out = picontroller.can_generate_user_out(request, report)
+        allow_download_out = pcontroller.user_outs_exist() and picontroller.can_generate_user_out(request, report)
         allow_test_comments = picontroller.can_see_test_comments(request, report)
         all_outs_generated = allow_download_out
 
@@ -929,17 +949,19 @@ class ProgrammingContestController(ContestController):
             submission
         )
 
-    def get_compiler_for_language(self, problem_instance, language):
+    def get_compiler_for_language(self, problem_instance, language, problem_compilers=None):
         contest = problem_instance.contest
         problem = problem_instance.problem
-        contest_compiler_qs = ContestCompiler.objects.filter(
-            contest__exact=contest, language__exact=language
-        )
-        if contest_compiler_qs.exists():
-            return contest_compiler_qs.first().compiler
+        # Let's cache, as we will probably be ran for a few langs for this pi.
+        if not hasattr(contest, '_compilers_cache'):
+            contest._compilers_cache = {
+                cc.language: cc for cc in contest.contestcompiler_set.all()
+            }
+        if language in contest._compilers_cache:
+            return contest._compilers_cache[language].compiler
         else:
             return problem.controller.get_compiler_for_language(
-                problem_instance, language
+                problem_instance, language, problem_compilers=problem_compilers,
             )
 
     def _map_report_to_submission_status(

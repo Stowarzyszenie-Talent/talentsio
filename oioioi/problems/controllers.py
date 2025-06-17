@@ -738,3 +738,9 @@ class ProblemController(RegisteredSubclassesBase, ObjectWithMixins):
         submissions for generating results.
         """
         return qs.order_by('-date')
+
+    def user_outs_exist(self):
+        return True
+
+    def allow_test_runs(self, request):
+        return True

@@ -40,7 +40,7 @@ class TalentOpenContestController(ProgrammingContestController):
         - Czas wykonania programu jest mierzony tak jak na Olimpiadzie Informatycznej, czyli liczy się liczba wykonanych instrukcji.
         - Od połowy limitu czasu punktacja testu spada liniowo do zera.
         - Punktacja grupy zależy od testu z minimalną punktacją.
-        - W zadaniach/kontestach bez odsłonięć wynik za zadanie zależy od ostatnich kompilujących się zgłoszeń w poszczególnych fazach, a tam, gdzie są odsłonięcia (np. w Grupie A), od najlepszych zgłoszeń w poszczególnych fazach.
+        - Wynik za zadanie zależy od najlepszych (!) zgłoszeń w poszczególnych fazach.
 
         Fazy to podział na okresy czasowe z mnożnikami""" + (f""", obecnie:
         Kontest (x1) - po konteście do {_phase_end_human()} (x0.{settings.TALENT_SCORE1}) - od {_phase_end_human()} do początku ostatniego kontestu (x0.{settings.TALENT_SCORE2}){" - później (x0)" if settings.TALENT_BEZ_DOBIJANIA else ""}.""" if _is_camp() else ".") + """
@@ -54,9 +54,9 @@ class TalentOpenContestController(ProgrammingContestController):
         """TALENT FEATURE: abstract away picking either latest or best
         submissions for generating results.
         """
-        reveals_config = get_scores_reveal_config(pi)
-        if reveals_config is None or reveals_config.reveal_limit == 0:
-            return qs.order_by('-date')
+        #reveals_config = get_scores_reveal_config(pi)
+        #if reveals_config is None or reveals_config.reveal_limit == 0:
+        #    return qs.order_by('-date')
         return qs.order_by('-score', '-date')
 
     def fill_evaluation_environ(self, environ, submission):

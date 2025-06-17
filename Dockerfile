@@ -49,7 +49,7 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh && \
     sed -i -e "s/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/" /etc/locale.gen && \
     locale-gen
 
-COPY --chmod=+x --chown=oioioi ./entrypoint_checks.sh /entrypoint_checks.sh
+COPY --chmod=555 --chown=oioioi ./entrypoint_checks.sh /entrypoint_checks.sh
 # RUN chmod +x /entrypoint_checks.sh && chown oioioi /entrypoint_checks.sh
 # export DOCKER_BUILDKIT=1
 

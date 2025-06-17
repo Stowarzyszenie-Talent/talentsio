@@ -16,13 +16,15 @@ def get_allowed_languages_dict(problem_instance):
     }
 
 
-def get_allowed_languages_extensions(problem_instance):
-    lang_exts = list(get_allowed_languages_dict(problem_instance).values())
+def get_allowed_languages_extensions(problem_instance, langs_dict=None):
+    if langs_dict is None:
+        langs_dict = get_allowed_languages_dict(problem_instance)
+    lang_exts = list(langs_dict.values())
     return [ext for lang in lang_exts for ext in lang]
 
 
 def get_language_by_extension(problem_instance, ext):
-    for lang, extension_list in get_allowed_languages_dict(problem_instance).items():
+    for lang, extension_list in getattr(settings, 'SUBMITTABLE_EXTENSIONS', {}).items():
         if ext in extension_list:
             return lang
     return None

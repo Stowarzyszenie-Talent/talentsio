@@ -21,6 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from datetime import datetime
 import os
 import sys
 import tarfile
@@ -130,6 +131,9 @@ class Archive(object):
     def extracted_size(self):
         return self._archive.extracted_size()
 
+    def get_mtime(self, filename):
+        return self._archive.get_mtime(filename)
+
 
 class BaseArchive(object):
     """
@@ -155,6 +159,12 @@ class BaseArchive(object):
     def extracted_size(self):
         """
         Return total file size of extracted files in bytes.
+        """
+        raise NotImplementedError()
+
+    def get_mtime(self, filename):
+        """
+        Return the timestamp of the last modification of a given file.
         """
         raise NotImplementedError()
 
@@ -218,6 +228,12 @@ class TarArchive(BaseArchive):
             total += member.size
         return total
 
+    def get_mtime(self, filename):
+        """
+        Return the timestamp of the last modification of a given file.
+        """
+        return self._archive.getmember(filename).mtime
+
     def check_files(self, to_path=None):
         BaseArchive.check_files(self, to_path)
 
@@ -252,6 +268,14 @@ class ZipArchive(BaseArchive):
             for zipinfo in self._archive.infolist()
             if zipinfo.is_dir()
         ]
+
+    def get_mtime(self, filename):
+        """
+        Return the timestamp of the last modification of a given file.
+        """
+        return datetime(
+            *(self._archive.getinfo(filename).date_time)
+        ).timestamp()
 
 
 extension_map = {

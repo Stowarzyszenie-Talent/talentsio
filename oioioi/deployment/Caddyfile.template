@@ -39,6 +39,8 @@ localhost {
         file_server
     }
 
-    reverse_proxy /socket.io/* localhost:7887
+    reverse_proxy /socket.io/* localhost:7887 {
+        header_down +Cache-Control max-age=3600 # 1h
+    }
     reverse_proxy localhost:8000
 }

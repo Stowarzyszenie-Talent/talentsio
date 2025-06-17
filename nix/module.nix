@@ -16,8 +16,6 @@ let
 
     # This shouldn't be written to, if it is then we've encountered a bug.
     MEDIA_ROOT = "/var/empty";
-    # Managed by systemd
-    STATIC_ROOT = "/var/lib/sio2/static";
 
     SECRET_KEY = pythonStatements ''
       import uuid
@@ -108,6 +106,14 @@ in
       '';
     };
 
+    caddyInternalTLS = lib.mkOption {
+      default = false;
+      description = lib.mdDoc ''
+        Whether to use Caddy's internal CA for missing certificates.
+      '';
+      type = lib.types.bool;
+    };
+
     certPath = lib.mkOption {
       default = null;
       description = lib.mkDoc ''
@@ -190,18 +196,25 @@ in
       writePython311 = pkgs.writers.makePythonWriter python pkgs.python311Packages pkgs.python311Packages;
       writePython311Bin = name: writePython311 "/bin/${name}";
 
-      finalSimpleSettings = baseSettings // (builtins.foldl' (a: b: a // b) { } (builtins.filter builtins.isAttrs cfg.extraSettings)) // {
-        SERVER = "uwsgi";
-        BROKER_URL = cfg.rabbitmqUrl;
+      finalSimpleSettings = let
+        hash = builtins.hashString "md5" (python.pkgs.makePythonPath [ package ]);
+      in
+        baseSettings // (builtins.foldl' (a: b: a // b) { } (builtins.filter builtins.isAttrs cfg.extraSettings)) // {
+          SERVER = "uwsgi";
+          BROKER_URL = cfg.rabbitmqUrl;
 
-        DATABASES.default = {
-          ENGINE = "django.db.backends.postgresql";
-          ATOMIC_REQUESTS = true;
-          NAME = "sio2";
-          USER = "sio2";
-          PASSWORD = "";
-          HOST = "";
-        };
+          # For graceful reloads
+          STATIC_ROOT = "/var/lib/sio2/static/${hash}";
+          STATIC_URL = "/static/${hash}/";
+
+          DATABASES.default = {
+            ENGINE = "django.db.backends.postgresql";
+            ATOMIC_REQUESTS = true;
+            NAME = "sio2";
+            USER = "sio2";
+            PASSWORD = "";
+            HOST = "";
+          };
       };
       finalSettingsText = lib.concatMapStrings (x: if lib.hasSuffix "\n" x then x else x + "\n") ([
         "# Settings header\n"
@@ -277,7 +290,10 @@ in
         {
           assertion = (
             (cfg.keyPath == null -> cfg.certPath == null) &&
-            (cfg.certPath == null -> cfg.keyPath == null)
+            (cfg.certPath == null -> cfg.keyPath == null) &&
+            (cfg.keyPath != null -> cfg.useSSL) &&
+            (cfg.caddyInternalTLS -> cfg.useSSL) &&
+            (cfg.certPath != null -> cfg.caddyInternalTLS == false)
           );
           message = ''
             Either both or none of `services.oioioi.keyPath` and `services.oioioi.certPath` must be set.
@@ -347,26 +363,29 @@ in
                   respond "{err.status_code} {err.status_text}"
               }
 
-              handle_path /static/* {
-                  root * /var/lib/sio2/static
-                  handle /CACHE/* {
-                      header Cache-Control max-age=31536000 # 1y
-                      file_server {
-                          precompressed gzip
-                      }
-                  }
+              handle_path /cppreference/* {
+                  root * ${pkgs.cppreference-doc}/share/cppreference/doc/html
                   header Cache-Control max-age=86400 # 1d
                   file_server
               }
 
-              reverse_proxy /socket.io/* 127.0.0.1:7887
+              handle_path /static/* {
+                  root * /var/lib/sio2/static
+                  header Cache-Control max-age=31536000 # 1y
+                  file_server {
+                      precompressed gzip
+                  }
+              }
+
+              reverse_proxy /socket.io/* 127.0.0.1:7887 {
+                  header_down +Cache-Control max-age=3600 # 1h
+              }
               reverse_proxy 127.0.0.1:8000
-            '' + (if cfg.useSSL then
-              (if cfg.certPath != null then ''
-                tls ${cfg.certPath} ${cfg.keyPath}
-              '' else ''
-                tls internal
-              '') else "");
+            '' + (if cfg.certPath != null then ''
+              tls ${cfg.certPath} ${cfg.keyPath}
+            '' else "") + (if cfg.caddyInternalTLS then ''
+              tls internal
+            '' else "");
           };
         };
 
@@ -378,7 +397,6 @@ in
             gzip_min_length 1024;
             gzip_proxied expired no-cache no-store private auth;
             gzip_types text/html text/plain text/css application/javascript text/javascript;
-            expires 1d;
           '';
         in
         lib.mkIf (!cfg.useCaddy) {
@@ -392,22 +410,20 @@ in
             sslCertificate = cfg.certPath;
           }) // {
             serverName = cfg.domain;
-            locations."/static/CACHE/" = {
-              alias = "/var/lib/sio2/static/CACHE/";
-              extraConfig = ''
-                gzip_static on;
-                expires 1y;
-              '';
-            };
 
             locations."/cppreference/" = {
               alias = "${pkgs.cppreference-doc}/share/cppreference/doc/html/";
-              extraConfig = static_cache_cfg;
+              extraConfig = static_cache_cfg + ''
+                expires 1d;
+              '';
             };
 
             locations."/static/" = {
               alias = "/var/lib/sio2/static/";
-              extraConfig = static_cache_cfg;
+              extraConfig = static_cache_cfg + ''
+                gzip_static on;
+                expires 1y;
+              '';
             };
 
             locations."/socket.io/".extraConfig = ''
@@ -646,6 +662,18 @@ in
             '';
 
             reload = ''
+              if [ -f /var/lib/sio2/static/curr ] && [ -f /var/lib/sio2/static/prev ]; then
+                  prev=$(cat /var/lib/sio2/static/prev)
+                  curr=$(cat /var/lib/sio2/static/curr)
+                  rm /var/lib/sio2/static/prev
+                  if [ "$prev" != "${finalSimpleSettings.STATIC_ROOT}" ] && [ "$prev" != "$curr" ]; then
+                      rm -rf $prev
+                  fi
+              fi
+              if [ -f /var/lib/sio2/static/curr ]; then
+                  mv /var/lib/sio2/static/{curr,prev}
+              fi
+              echo ${finalSimpleSettings.STATIC_ROOT} > /var/lib/sio2/static/curr
               ln -sf ${wsgiPy} /var/run/sio2/wsgi.py
               ${managePy}/bin/sio-manage collectstatic --no-input
               ${managePy}/bin/sio-manage compress --force
@@ -655,6 +683,9 @@ in
             serviceConfig = {
               ReadWritePaths = [ "/dev/shm" ];
               ExecStartPre = [
+                "${pkgs.coreutils-full}/bin/rm -rf /var/lib/sio2/static"
+                "${pkgs.coreutils-full}/bin/mkdir /var/lib/sio2/static"
+                "${pkgs.bash}/bin/bash -c 'echo ${finalSimpleSettings.STATIC_ROOT} > /var/lib/sio2/static/curr'"
                 "${pkgs.coreutils-full}/bin/ln -sf ${wsgiPy} /var/run/sio2/wsgi.py"
                 "${managePy}/bin/sio-manage collectstatic --no-input"
                 "${managePy}/bin/sio-manage compress --force"

@@ -268,7 +268,10 @@ class SubmissionForm(forms.Form):
                 field.widget.attrs['data-submit'] = 'default'
 
     def get_problem_instances(self):
-        return submittable_problem_instances(self.request)
+        return submittable_problem_instances(
+            self.request,
+            extra_select_related=('problem__extraconfig',),
+        )
 
     def is_valid(self):
         return forms.Form.is_valid(self)
