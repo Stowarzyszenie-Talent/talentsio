@@ -6,10 +6,11 @@ from traceback import format_exception
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core import validators
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import validate_slug
 from django.db import models, transaction
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_save, pre_delete, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.encoding import force_str
@@ -118,11 +119,19 @@ class Problem(models.Model):
 
     @cached_property
     def name(self):
-        if getattr(settings, 'TESTS', False):
-            problem_name = ProblemName.objects.filter(
-                problem=self, language=get_language()
-            ).first()
-            return problem_name.name if problem_name else self.legacy_name
+        # TODO: test the performance of the implementation below.
+        if not getattr(settings, 'TESTS', False):
+            return self.legacy_name
+        # We fetch all of self.names and filter by language in Python instead of Django.
+        # This allows us to do prefetch_related('names'), which considerably speeds up
+        # views such as task_archive_tag_view that query many problems and their associated names
+
+        # Check if primary key exists, as it's needed to access related fields such as `names`
+        if self.pk:
+            for problem_name in self.names.all():
+                if problem_name.language == get_language():
+                    return problem_name.name
+
         return self.legacy_name
 
     @property
@@ -157,14 +166,15 @@ class Problem(models.Model):
         verbose_name = _("problem")
         verbose_name_plural = _("problems")
         permissions = (
+            ('can_modify_tags', _("Can modify tags")),
             ('problems_db_admin', _("Can administer the problems database")),
             ('problem_admin', _("Can administer the problem")),
         )
 
     def __str__(self):
-        return u'%(name)s (%(short_name)s)' % {
-            u'short_name': self.short_name,
-            u'name': self.name,
+        return '%(name)s (%(short_name)s)' % {
+            'short_name': self.short_name,
+            'name': self.name,
         }
 
     def save(self, *args, **kwargs):
@@ -247,7 +257,7 @@ class ProblemStatement(models.Model):
         verbose_name_plural = _("problem statements")
 
     def __str__(self):
-        return u'%s / %s' % (self.problem.name, self.filename)
+        return '%s / %s' % (self.problem.name, self.filename)
 
 
 
@@ -278,7 +288,7 @@ class ProblemAttachment(models.Model):
         verbose_name_plural = _("attachments")
 
     def __str__(self):
-        return u'%s / %s' % (self.problem.name, self.filename)
+        return '%s / %s' % (self.problem.name, self.filename)
 
 
 def _make_package_filename(instance, filename):
@@ -780,7 +790,7 @@ class OriginInfoValue(models.Model):
     @property
     def full_name(self):
         return str(
-            u'{} {}'.format(self.parent_tag.full_name, self.full_value)
+            '{} {}'.format(self.parent_tag.full_name, self.full_value)
         )
 
     class Meta(object):
@@ -835,6 +845,7 @@ class DifficultyTag(models.Model):
     class Meta(object):
         verbose_name = _("difficulty tag")
         verbose_name_plural = _("difficulty tags")
+        ordering = ["pk"]
 
     def __str__(self):
         return str(self.name)
@@ -847,7 +858,7 @@ class DifficultyTagThrough(models.Model):
 
     # This string will be visible in an admin form.
     def __str__(self):
-        return str(self.tag.name)
+        return str(self.problem.name) + ' -- ' + str(self.tag.name)
 
 
 
@@ -880,11 +891,26 @@ class DifficultyTagProposal(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return str(self.problem.name) + u' -- ' + str(self.tag.name)
+        return str(self.problem.name) + ' -- ' + str(self.tag.name)
 
     class Meta(object):
         verbose_name = _("difficulty proposal")
         verbose_name_plural = _("difficulty proposals")
+
+
+
+class AggregatedDifficultyTagProposal(models.Model):
+    problem = models.ForeignKey('Problem', on_delete=models.CASCADE)
+    tag = models.ForeignKey('DifficultyTag', on_delete=models.CASCADE)
+    amount = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return str(self.problem.name) + ' -- ' + str(self.tag.name) + ' -- ' + str(self.amount)
+
+    class Meta:
+        verbose_name = _("aggregated difficulty tag proposal")
+        verbose_name_plural = _("aggregated difficulty tag proposals")
+        unique_together = ('problem', 'tag')
 
 
 @_localized('full_name')
@@ -919,7 +945,7 @@ class AlgorithmTagThrough(models.Model):
 
     # This string will be visible in an admin form.
     def __str__(self):
-        return str(self.tag.name)
+        return str(self.problem.name) + ' -- ' + str(self.tag.name)
 
     class Meta(object):
         unique_together = ('problem', 'tag')
@@ -955,8 +981,79 @@ class AlgorithmTagProposal(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return str(self.problem.name) + u' -- ' + str(self.tag.name)
+        return str(self.problem.name) + ' -- ' + str(self.tag.name)
 
     class Meta(object):
         verbose_name = _("algorithm tag proposal")
         verbose_name_plural = _("algorithm tag proposals")
+
+
+
+class AggregatedAlgorithmTagProposal(models.Model):
+    problem = models.ForeignKey('Problem', on_delete=models.CASCADE)
+    tag = models.ForeignKey('AlgorithmTag', on_delete=models.CASCADE)
+    amount = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return str(self.problem.name) + ' -- ' + str(self.tag.name) + ' -- ' + str(self.amount)
+
+    class Meta:
+        verbose_name = _("aggregated algorithm tag proposal")
+        verbose_name_plural = _("aggregated algorithm tag proposals")
+        unique_together = ('problem', 'tag')
+        indexes = [
+            models.Index(fields=['problem']),
+        ]
+
+
+def increase_aggregated_tag_proposal(sender, instance, created, aggregated_model, **kwargs):
+    if created:
+        with transaction.atomic():
+            aggregated_model.objects.filter(
+                problem=instance.problem,
+                tag=instance.tag
+            ).update(amount=models.F('amount') + 1) \
+            or \
+            aggregated_model.objects.create(
+                problem=instance.problem,
+                tag=instance.tag,
+                amount=1
+            )
+
+@receiver(post_save, sender=AlgorithmTagProposal)
+def increase_aggregated_algorithm_tag_proposal(sender, instance, created, **kwargs):
+    increase_aggregated_tag_proposal(sender, instance, created, AggregatedAlgorithmTagProposal, **kwargs)
+
+@receiver(post_save, sender=DifficultyTagProposal)
+def increase_aggregated_difficulty_tag_proposal(sender, instance, created, **kwargs):
+    increase_aggregated_tag_proposal(sender, instance, created, AggregatedDifficultyTagProposal, **kwargs)
+
+
+def decrease_aggregated_tag_proposal(sender, instance, aggregated_model, **kwargs):
+    try:
+        with transaction.atomic():
+            aggregated_model.objects.filter(
+                problem=instance.problem,
+                tag=instance.tag
+            ).filter(amount__gt=1).update(amount=models.F('amount') - 1) \
+            or \
+            aggregated_model.objects.filter(
+                problem=instance.problem,
+                tag=instance.tag
+            ).delete()
+
+    except Exception as e:
+        logger.exception(
+            "Error decreasing aggregated tag proposal for problem %s and tag %s.",
+            instance.problem,
+            instance.tag
+        )
+
+
+@receiver(post_delete, sender=AlgorithmTagProposal)
+def decrease_aggregated_algorithm_tag_proposal(sender, instance, **kwargs):
+    decrease_aggregated_tag_proposal(sender, instance, AggregatedAlgorithmTagProposal, **kwargs)
+
+@receiver(post_delete, sender=DifficultyTagProposal)
+def decrease_aggregated_difficulty_tag_proposal(sender, instance, **kwargs):
+    decrease_aggregated_tag_proposal(sender, instance, AggregatedDifficultyTagProposal, **kwargs)

@@ -22,7 +22,7 @@ class NotificationHandler(logging.StreamHandler):
     """
 
     # Example usage may be found in external documentation.
-    # Link: http://oioioi.readthedocs.org/en/latest/sections/notifications.html
+    # Link: https://sio2project.github.io/oioioi/sections/notifications.html
 
     loaded_notifications = False
 
@@ -54,6 +54,7 @@ class NotificationHandler(logging.StreamHandler):
                 if o.username and o.password:
                     kwargs['credentials'] = PlainCredentials(o.username, o.password)
                 kwargs.update(settings.NOTIFICATIONS_RABBITMQ_EXTRA_PARAMS)
+                kwargs['heartbeat'] = 8
                 parameters = ConnectionParameters(**kwargs)
                 thread_data.conn = BlockingConnection(parameters)
 

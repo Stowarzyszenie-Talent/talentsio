@@ -298,6 +298,7 @@ def run_tests(env, kind=None, **kwargs):
         job['advanced_checher_control'] = env['advanced_checher_control']
         if env.get('checker'):
             job['chk_file'] = env['checker']
+        job['checker_format'] = env.get('checker_format', 'english_abbreviated')
         if env.get('save_outputs'):
             job.setdefault('out_file', _make_filename(env, test_name + '.out'))
             job['upload_out'] = True

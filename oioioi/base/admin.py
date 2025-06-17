@@ -15,6 +15,7 @@ from django.utils.encoding import force_str
 from django.utils.html import escape
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
+from django import forms
 
 from oioioi.base.forms import OioioiUserChangeForm, OioioiUserCreationForm
 from oioioi.base.menu import MenuRegistry, side_pane_menus_registry
@@ -128,7 +129,7 @@ class ModelAdmin(
 
         if request.POST:  # The user has already confirmed the deletion.
             obj_display = force_str(obj)
-            self.log_deletion(request, obj, obj_display)
+            self.log_deletions(request, (obj,))
             self.delete_model(request, obj)
             self.message_user(
                 request,
@@ -182,6 +183,9 @@ class ModelAdmin(
         return self.has_change_permission(request, obj)
 
 
+@admin.action(
+    description=_("Delete selected %(verbose_name_plural)s")
+)
 def delete_selected(modeladmin, request, queryset, **kwargs):
     """Default ModelAdmin action that deletes the selected objects.
 
@@ -217,9 +221,7 @@ def delete_selected(modeladmin, request, queryset, **kwargs):
             raise PermissionDenied
         n = queryset.count()
         if n:
-            for obj in queryset:
-                obj_display = force_str(obj)
-                modeladmin.log_deletion(request, obj, obj_display)
+            modeladmin.log_deletions(request, queryset)
             modeladmin.delete_queryset(request, queryset)
             message_text = _("Successfully deleted %(count)d %(items)s.") % {
                 "count": n,
@@ -272,7 +274,6 @@ def delete_selected(modeladmin, request, queryset, **kwargs):
     )
 
 
-delete_selected.short_description = _("Delete selected %(verbose_name_plural)s")
 
 
 def collect_deleted_objects(modeladmin, request, queryset):
@@ -352,6 +353,7 @@ system_admin_menu_registry = MenuRegistry(_("System Administration"), is_superus
 side_pane_menus_registry.register(system_admin_menu_registry, order=10)
 
 
+@admin.register(User, site=site)
 class OioioiUserAdmin(UserAdmin, ObjectWithMixins, metaclass=ModelAdminMeta):
     form = OioioiUserChangeForm
     add_form = OioioiUserCreationForm
@@ -362,21 +364,28 @@ class OioioiUserAdmin(UserAdmin, ObjectWithMixins, metaclass=ModelAdminMeta):
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         (_("Personal info"), {'fields': ('first_name', 'last_name', 'email')}),
-        (_("Permissions"), {'fields': ('is_active', 'is_superuser', 'groups')}),
+        (_("Permissions"), {'fields': ('is_active', 'is_superuser', 'user_permissions', 'groups')}),
         (_("Important dates"), {'fields': ('last_login', 'date_joined')}),
     )
     list_filter = ['is_superuser', 'is_active']
     list_display = ['username', 'email', 'first_name', 'last_name', 'is_active']
-    filter_horizontal = ()
+    filter_horizontal = ('user_permissions',)
     actions = ['activate_user']
 
+    # Overriding the formfield_for_manytomany method to ensure we render the field as checkboxes
+    def formfield_for_manytomany(self, db_field, request=None, **kwargs):
+        if db_field.name == 'user_permissions':
+            kwargs['widget'] = forms.CheckboxSelectMultiple()
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+    @admin.action(
+        description=_("Mark users as active")
+    )
     def activate_user(self, request, qs):
         qs.update(is_active=True)
 
-    activate_user.short_description = _("Mark users as active")
 
 
-site.register(User, OioioiUserAdmin)
 
 system_admin_menu_registry.register(
     'users',

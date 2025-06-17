@@ -24,7 +24,10 @@
 /deployment/
 /venv*/
 /.idea/
-basic_settings*.py
+/.vscode/
+/.fleet/
+/dist_webpack/
+/node_modules/
 
 # docker specific
 
@@ -40,3 +43,7 @@ basic_settings*.py
 /*.rst
 /rst/
 /env
+
+
+# Talent-specific
+basic_settings*.py

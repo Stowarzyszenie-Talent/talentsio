@@ -19,21 +19,19 @@ if os.getuid() == 0:  # root
     print("ERROR: message and edit the source at your own risk.", file=sys.stderr)
     sys.exit(2)
 
-# All modules in the newest versions at the time of upgrade to Django 4.2
-# unless specified otherwise.
 requirements = [
     "Django>=4.2,<4.3",
-    "pytz==2024.1",
+    "pytz>=2023.3,<=2025.2",
     "SQLAlchemy>=2.0,<2.1",
     "beautifulsoup4>=4.12,<4.13",
-    "PyYAML>=6.0,<6.1",
+    "PyYAML>=6.0.1,<6.1",
     "python-dateutil>=2.9,<2.10",
     "django-two-factor-auth>=1.15,<1.16",
     "django-registration-redux>=2.12,<2.13",
     "Celery>=5.4,<5.5", # watch out for sqlalchemy compatibility
     "coreapi>=2.3,<2.4",
     "dj-pagination>=2.5,<2.6",
-    "django-compressor>=4.4,<4.5",
+    "django-compressor>=4.5,<4.6",
     "django-statici18n<2.5",
     "Pygments>=2.17,<3.0",
     "django-libsass>=0.9,<0.10",
@@ -43,7 +41,7 @@ requirements = [
     "Werkzeug",
     "pytest>=7.2,<8.0",
     "pytest-cov>=4.0,<5.0",
-    "pytest-django>=4.4,<5.0",
+    "pytest-django>=4.11,<5.0",
     "pytest-html>=4.0,<5.0",
     "pytest-metadata>=3.0,<4.0",
     "pytest-xdist>=3.2,<4.0",
@@ -54,17 +52,19 @@ requirements = [
     "bleach>=6.0,<6.1",
     "chardet>=5.2,<5.3",
     "django-gravatar2>=1.4,<1.5",
-    "django-mptt>=0.13,<0.15",
+    "django-mptt>=0.16,<0.17",
     "mistune<2.0",   # 2.0 is breaking
     "pika>=1.3,<1.4",
     "Unidecode>=1.3,<1.4",
-    "sentry-sdk>=1.35,<2.0",
+    "sentry-sdk>=2.16.0,<2.17.0",
     "fontawesomefree>=6.5,<7.0",
     # A library allowing to nest inlines in django admin.
     # Used in quizzes module for adding new quizzes.
-    "django-nested-admin>=4.0,<4.1",
+    "django-nested-admin>=4.1,<4.2",
+    # Library for parsing dates and timedelta
+    "humanize<=4.9.0",
     # SIO2 dependencies:
-    "filetracker[server]>=2.1,<3.0",
+    "filetracker-talent>=2.2.0,<3.0",
     "django-simple-captcha>=0.6,<0.7",
     "phonenumbers>=8.13,<8.14",
     "pdfminer.six==20231228",

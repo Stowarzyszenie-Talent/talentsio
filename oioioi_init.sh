@@ -20,4 +20,5 @@ else
 fi
 
 wait
+echo "Init Finished"
 exec ./manage.py supervisor --logfile=/sio2/deployment/logs/supervisor.log

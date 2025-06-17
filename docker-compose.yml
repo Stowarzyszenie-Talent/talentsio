@@ -1,3 +1,8 @@
+x-common-envs: &common-envs
+ FILETRACKER_URL: 'http://web:9999'
+ DATABASE_HOST: 'db'
+ DATABASE_PORT: '5432'
+
 services:
   db:
     image: library/postgres:15.1
@@ -10,14 +15,22 @@ services:
     command: ["/sio2/oioioi/oioioi_init.sh"]
     env_file: env
     environment:
-      OIOIOI_SERVER_MODE: "uwsgi-http" # For nginx change this to "uwsgi"
+      OIOIOI_SERVER_MODE: "uwsgi"
+      OIOIOI_DB_ENGINE: 'django.db.backends.postgresql'
+      RABBITMQ_HOST: 'broker'
+      RABBITMQ_PORT: '5672'
+      RABBITMQ_USER: 'oioioi'
+      RABBITMQ_PASSWORD: 'oioioi'
+      FILETRACKER_LISTEN_ADDR: '0.0.0.0'
+      FILETRACKER_LISTEN_PORT: '9999'
+      <<: *common-envs
     ports:
       - "80:80" # Expose 8000 for nginx
       - "443:443"
       - "443:443/udp"
     volumes:
       - ./basic_settings.py:/sio2/deployment/basic_settings.py
-      - filetracker:/sio2/deployment/media
+      - filetracker-data:/sio2/deployment/media
     stop_grace_period: 3m
     depends_on:
       - db
@@ -28,6 +41,8 @@ services:
     environment:
       WORKER_CONCURRENCY: ${OIOIOI_CONCURRENCY}
       WORKER_RAM_MB: ${OIOIOI_RAM}
+      WEB_URL: "web:8000"
+      <<: *common-envs
     stop_grace_period: 1m
     security_opt:
       - seccomp:./extra/docker/seccomp.json
@@ -46,4 +61,4 @@ services:
     stop_grace_period: 1m
 volumes:
   postgress-data:
-  filetracker:
+  filetracker-data:

@@ -61,6 +61,7 @@ from oioioi.base.utils.execute import ExecuteError, execute
 from oioioi.contests.models import Contest
 from oioioi.contests.utils import is_contest_admin
 from oioioi.szkopul.views import main_page_view as szkopul_main_page
+from oioioi.welcomepage.views import welcome_page_view
 
 if not getattr(settings, 'TESTS', False):
     print(
@@ -163,6 +164,7 @@ class TestIndexNoContest(TestCase):
 
     @override_settings(DEFAULT_GLOBAL_PORTAL_AS_MAIN_PAGE=False)
     def test_no_contest(self):
+        unregister_main_page_view(welcome_page_view)
         unregister_main_page_view(szkopul_main_page)
         with self.assertNumQueriesLessThan(50):
             response = self.client.get('/')
@@ -370,7 +372,7 @@ class TestErrorHandlers(TestCase):
         self.client.login = custom_login
 
     def ajax_get(self, url):
-        return self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        return self.client.get(url, headers={"x-requested-with": 'XMLHttpRequest'})
 
     def assertHtml(self, response, code):
         self.assertContains(response, '<html', status_code=code)
@@ -1265,9 +1267,9 @@ class TestLoginChange(TestCase):
             # The html strings underneath may change with any django upgrade.
             self.assertContains(
                 response,
-                '<input type="text" id="id_username" name="username" '
-                'value="%s" class="form-control" '
-                'maxlength="150" required />' % l,
+                '<input type="text" name="username" value="%s" '
+                'maxlength="150" class="form-control" required="" '
+                'aria-describedby="id_username_helptext" id="id_username">' % l,
                 html=True,
             )
 
@@ -1284,9 +1286,9 @@ class TestLoginChange(TestCase):
             response = self.client.get(self.url_edit_profile)
             self.assertContains(
                 response,
-                '<input type="text" id="id_username" name="username" '
-                'value="valid_user" class="form-control" '
-                'maxlength="150" readonly required />',
+                '<input type="text" name="username" value="valid_user" '
+                'maxlength="150" readonly="" class="form-control" required="" '
+                'aria-describedby="id_username_helptext" id="id_username">',
                 html=True,
             )
 
@@ -1298,9 +1300,9 @@ class TestLoginChange(TestCase):
             response = self.client.get(self.url_edit_profile)
             self.assertContains(
                 response,
-                '<input type="text" id="id_username" name="username" '
-                'value="%s" class="form-control" '
-                'maxlength="150" readonly required />' % l,
+                '<input type="text" name="username" value="%s" '
+                'maxlength="150" readonly="" class="form-control" required="" '
+                'aria-describedby="id_username_helptext" id="id_username">' % l,
                 html=True,
             )
 
@@ -1452,7 +1454,7 @@ class TestUserDeactivationLogout(TestCase):
         self.user.is_active = False
         self.user.save()
 
-        self.client.get(self.profile_index, follow=True)
+        self.client.post(self.profile_index, follow=True)
         # At this point we should check if user is deactivated and log him out.
         self.assert_logged(False)
 
@@ -1607,7 +1609,7 @@ class TestPublicMessage(TestCase):
         self.assertEqual(response.status_code, 302)
 
         # Check if message is visible
-        self.assertTrue(self.client.login(username='test_user2'))
+        self.assertTrue(self.client.login(username='test_user'))
         url = reverse(self.viewname, kwargs=viewname_kwargs)
         response = self.client.get(url)
         self.assertContains(response, 'Test public message')
@@ -1621,7 +1623,7 @@ class TestPublicMessage(TestCase):
         contest.save()
         viewname_kwargs = getattr(self, 'viewname_kwargs', {'contest_id': contest.id})
 
-        self.assertTrue(self.client.login(username='test_user2'))
+        self.assertTrue(self.client.login(username='test_user'))
         url = reverse(self.viewname, kwargs=viewname_kwargs)
         response = self.client.get(url)
         self.assertContains(response, 'Test public message')
@@ -1636,7 +1638,7 @@ class TestPublicMessage(TestCase):
         response = self.client.get(url)
         self.assertContains(response, edit_url)
 
-        self.assertTrue(self.client.login(username='test_user2'))
+        self.assertTrue(self.client.login(username='test_user'))
         response = self.client.get(url)
         self.assertNotContains(response, edit_url)
 
@@ -1644,11 +1646,17 @@ class TestPublicMessage(TestCase):
     def test_add_message(self):
         if hasattr(self, 'model'):
             self.add_message()
+        else:
+            self.skipTest("model not defined")
 
     def test_contest_controller(self):
         if hasattr(self, 'controller_name'):
             self.contest_controller()
+        else:
+            self.skipTest("controller_name not defined")
 
     def test_button_visibility(self):
         if hasattr(self, 'button_viewname') and hasattr(self, 'edit_viewname'):
             self.button_visibility()
+        else:
+            self.skipTest("button_viewname or edit_viewname not defined")

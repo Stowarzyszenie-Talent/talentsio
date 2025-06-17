@@ -23,8 +23,11 @@ from oioioi.contests.models import (
     FilesMessage,
     SubmissionsMessage,
     SubmitMessage,
+    UserResultForProblem,
+    SubmissionMessage,
 )
-
+from oioioi.programs.models import ProgramsConfig
+from oioioi.participants.models import TermsAcceptedPhrase
 
 class RoundTimes(object):
     def __init__(
@@ -406,7 +409,33 @@ def used_controllers():
 
 
 @request_cached
-def visible_contests(request):
+def visible_contests_queryset_old(request):
+    """Returns Q for filtering contests visible to the logged in user."""
+    if request.GET.get('living', 'safely') == 'dangerously':
+        visible_query = Contest.objects.none()
+        for controller_name in used_controllers():
+            controller_class = import_string(controller_name)
+            # HACK: we pass None contest just to call visible_contests_query.
+            # This is a workaround for mixins not taking classmethods very well.
+            controller = controller_class(None)
+            subquery = Contest.objects.filter(controller_name=controller_name).filter(
+                controller.registration_controller().visible_contests_query(request)
+            )
+            visible_query = visible_query.union(subquery, all=False)
+        return visible_query
+    visible_query = Q_always_false()
+    for controller_name in used_controllers():
+        controller_class = import_string(controller_name)
+        # HACK: we pass None contest just to call visible_contests_query.
+        # This is a workaround for mixins not taking classmethods very well.
+        controller = controller_class(None)
+        visible_query |= Q(
+            controller_name=controller_name
+        ) & controller.registration_controller().visible_contests_query(request)
+    return visible_query
+
+
+def visible_contests_query(request):
     """Returns materialized set of contests visible to the logged in user."""
     if request.GET.get('living', 'safely') == 'dangerously':
         visible_query = Contest.objects.none()
@@ -419,7 +448,7 @@ def visible_contests(request):
                 controller.registration_controller().visible_contests_query(request)
             )
             visible_query = visible_query.union(subquery, all=False)
-        return set(visible_query)
+        return visible_query
     visible_query = Q_always_false()
     for controller_name in used_controllers():
         controller_class = import_string(controller_name)
@@ -429,12 +458,21 @@ def visible_contests(request):
         visible_query |= Q(
             controller_name=controller_name
         ) & controller.registration_controller().visible_contests_query(request)
-    
-    contests = Contest.objects.filter(visible_query).distinct()
+    return Contest.objects.filter(visible_query).distinct()
 
+@request_cached
+def visible_contests(request):
+    contests = visible_contests_query(request)
     return set(contests)
 
+@request_cached_complex
+def visible_contests_queryset(request, filter_value=None):
+    contests = visible_contests_query(request)
+    if filter_value is not None:
+        contests = contests.filter(Q(name__icontains=filter_value) | Q(id__icontains=filter_value) | Q(school_year=filter_value))    
+    return set(contests)
 
+# why is there no `can_admin_contest_query`?
 @request_cached
 def administered_contests(request):
     """Returns a list of contests for which the logged
@@ -584,6 +622,7 @@ def best_round_to_display(request, allow_past_rounds=False):
 
 @make_request_condition
 def has_any_contest(request):
+    # holy shit.
     contests = [contest for contest in administered_contests(request)]
     return len(contests) > 0
 
@@ -612,11 +651,20 @@ def get_submit_message(request):
     )
 
 
+def get_submission_message(request):
+    return get_public_message(
+        request,
+        SubmissionMessage,
+        'submission_message',
+    )
+
+
 @make_request_condition
 @request_cached
 def is_contest_archived(request):
     return (
         hasattr(request, 'contest')
+        and (request.contest is not None)
         and request.contest.is_archived
     )
 
@@ -649,3 +697,108 @@ def get_inline_for_contest(inline, contest):
             return True
 
     return ArchivedInlineWrapper
+
+# The whole section below requires refactoring,
+# may include refactoring the models of `Contest`, `ProgramsConfig` and `TermsAcceptedPhrase`
+
+def extract_programs_config_execution_mode(request):
+    return request.POST.get('programs_config-0-execution_mode', None)
+
+
+def create_programs_config(request, adding):
+    """Creates ProgramsConfig for a given contest if needed.
+
+    Args:
+        request: The HTTP request object.
+        adding (bool): If True, the contest is being added; otherwise, it is being modified.
+    """
+    requested_contest_id = request.POST.get('id', None)
+    execution_mode = extract_programs_config_execution_mode(request)
+
+    if (
+        execution_mode and
+        execution_mode != 'AUTO'
+    ):
+        if adding and requested_contest_id:
+            ProgramsConfig.objects.create(contest_id=requested_contest_id, execution_mode=execution_mode)
+        elif not hasattr(request.contest, 'programs_config'):
+            ProgramsConfig.objects.create(contest_id=request.contest.id, execution_mode=execution_mode)
+
+
+def extract_terms_accepted_phrase_text(request):
+    return request.POST.get('terms_accepted_phrase-0-text', None)
+
+
+def create_terms_accepted_phrase(request, adding):
+    """Creates TermsAcceptedPhrase for a given contest if needed.
+
+    Args:
+        request: The HTTP request object.
+        adding (bool): If True, the contest is being added; otherwise, it is being modified.
+    """
+
+    requested_contest_id = request.POST.get('id', None)
+    text = extract_terms_accepted_phrase_text(request)
+
+    if text:
+        if adding and requested_contest_id:
+            TermsAcceptedPhrase.objects.create(contest_id=requested_contest_id, text=text)
+        elif not hasattr(request.contest, 'terms_accepted_phrase'):
+            TermsAcceptedPhrase.objects.create(contest_id=request.contest.id, text=text)
+
+
+def create_contest_attributes(request, adding):
+    """Called to create certain attributes of contest object after modifying it that would not be created automatically.
+    Creates attributes are ProgramsConfig and TermsAcceptedPhrase
+
+    Args:
+        request: The HTTP request object.
+        adding (bool): If True, the contest is being added; otherwise, it is being modified.
+    """
+    if request.method != 'POST':
+        return
+    create_programs_config(request, adding)
+    create_terms_accepted_phrase(request, adding)
+
+def get_problem_statements(request, controller, problem_instances):
+    # Problem statements in order
+    # 1) problem instance
+    # 2) statement_visible
+    # 3) round end time
+    # 4) user result
+    # 5) number of submissions left
+    # 6) submissions_limit
+    # 7) can_submit
+    # Sorted by (start_date, end_date, round name, problem name)
+    return sorted(
+        [
+            (
+                pi,
+                controller.can_see_statement(request, pi),
+                controller.get_round_times(request, pi.round),
+                # Because this view can be accessed by an anynomous user we can't
+                # use `user=request.user` (it would cause TypeError). Surprisingly
+                # using request.user.id is ok since for AnynomousUser id is set
+                # to None.
+                next(
+                    (
+                        r
+                        for r in UserResultForProblem.objects.filter(
+                            user__id=request.user.id, problem_instance=pi
+                        )
+                        if r
+                        and r.submission_report
+                        and controller.can_see_submission_score(
+                            request, r.submission_report.submission
+                        )
+                    ),
+                    None,
+                ),
+                pi.controller.get_submissions_left(request, pi),
+                pi.controller.get_submissions_limit(request, pi),
+                controller.can_submit(request, pi) and not is_contest_archived(request),
+            )
+            for pi in problem_instances
+        ],
+        key=lambda p: (p[2].get_key_for_comparison(), p[0].round.name, p[0].short_name),
+    )

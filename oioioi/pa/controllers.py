@@ -25,7 +25,9 @@ from oioioi.participants.models import Participant
 from oioioi.participants.utils import is_participant
 from oioioi.programs.controllers import ProgrammingContestController
 from oioioi.rankings.controllers import CONTEST_RANKING_KEY, DefaultRankingController
+from oioioi.contests.models import RegistrationStatus
 from oioioi.rankings.models import Ranking
+
 
 auditLogger = logging.getLogger(__name__ + ".audit")
 
@@ -62,10 +64,18 @@ class PARegistrationController(ParticipantsController):
     def can_register(self, request):
         return super().is_registration_open(request)
 
+    def get_registration_status(self, request):
+        return super().registration_status(request)
+
     def can_unregister(self, request, participant):
         return False
 
     def registration_view(self, request):
+
+        registration_status = self.get_registration_status(request)
+        if registration_status == RegistrationStatus.NOT_OPEN_YET:
+            return TemplateResponse(request, 'contests/registration_not_open_yet.html')
+
         participant = self._get_participant_for_form(request)
 
         if 'pa_paregistrationformdata' in request.session:
@@ -89,7 +99,7 @@ class PARegistrationController(ParticipantsController):
                     request.user.username,
                     self.contest.id,
                     request.META.get('REMOTE_ADDR', '?'),
-                    request.META.get('HTTP_USER_AGENT', '?'),
+                    request.headers.get('user-agent', '?'),
                 )
                 if 'next' in request.GET:
                     return safe_redirect(request, request.GET['next'])

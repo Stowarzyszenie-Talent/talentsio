@@ -31,6 +31,8 @@ from oioioi.programs.models import (
     ProgramsConfig,
     ReportActionsConfig,
     Test,
+    CheckerFormatForContest,
+    CheckerFormatForProblem,
 )
 
 
@@ -132,21 +134,25 @@ class TestInline(admin.TabularInline):
     def has_view_permission(self, request, obj=None):
         return self.has_change_permission(request, obj)
 
+    @admin.display(
+        description=_("Input file")
+    )
     def input_file_link(self, instance):
         if instance.id is not None:
             href = reverse('download_input_file', kwargs={'test_id': str(instance.id)})
             return make_html_link(href, instance.input_file.name.split('/')[-1])
         return None
 
-    input_file_link.short_description = _("Input file")
 
+    @admin.display(
+        description=_("Output/hint file")
+    )
     def output_file_link(self, instance):
         if instance.id is not None:
             href = reverse('download_output_file', kwargs={'test_id': instance.id})
             return make_html_link(href, instance.output_file.name.split('/')[-1])
         return None
 
-    output_file_link.short_description = _("Output/hint file")
 
 
 class ReportActionsConfigInline(admin.StackedInline):
@@ -189,6 +195,9 @@ class OutputCheckerInline(admin.TabularInline):
     def has_view_permission(self, request, obj=None):
         return self.has_change_permission(request, obj)
 
+    @admin.display(
+        description=_("Checker exe")
+    )
     def checker_link(self, instance):
         if not instance.exe_file:
             return _("No checker for this task.")
@@ -200,7 +209,6 @@ class OutputCheckerInline(admin.TabularInline):
             return make_html_link(href, instance.exe_file.name.split('/')[-1])
         return None
 
-    checker_link.short_description = _("Checker exe")
 
 
 class LibraryProblemDataInline(admin.TabularInline):
@@ -363,6 +371,10 @@ ProblemPackageAdmin.mix_in(ProblemPackageAdminMixin)
 class ModelSubmissionAdminMixin(object):
     """Adds model submission to an admin panel."""
 
+    @admin.display(
+        description=SubmissionAdmin.user_full_name.short_description,
+        ordering=SubmissionAdmin.user_full_name.admin_order_field,
+    )
     def user_full_name(self, instance):
         if not instance.user:
             instance = instance.programsubmission
@@ -374,8 +386,6 @@ class ModelSubmissionAdminMixin(object):
                     )
         return super(ModelSubmissionAdminMixin, self).user_full_name(instance)
 
-    user_full_name.short_description = SubmissionAdmin.user_full_name.short_description
-    user_full_name.admin_order_field = SubmissionAdmin.user_full_name.admin_order_field
 
     def get_custom_list_select_related(self):
         return super(
@@ -408,11 +418,16 @@ class ProgramSubmissionAdminMixin(object):
             LanguageListFilter
         ]
 
+    @admin.display(
+        description=_("Language")
+    )
     def language_display(self, instance): # TODO: cache/store this
         return instance.programsubmission.get_language_display()
 
-    language_display.short_description = _("Language")
 
+    @admin.action(
+        description=_("Diff submissions")
+    )
     def submission_diff_action(self, request, queryset):
         if len(queryset) != 2:
             messages.error(
@@ -429,7 +444,6 @@ class ProgramSubmissionAdminMixin(object):
             submission2_id=id_newer,
         )
 
-    submission_diff_action.short_description = _("Diff submissions")
 
 
 SubmissionAdmin.mix_in(ProgramSubmissionAdminMixin)
@@ -452,3 +466,38 @@ class LanguageListFilter(SimpleListFilter):
             return queryset.filter(condition)
         else:
             return queryset
+
+
+class CheckerFormatForContestInline(admin.StackedInline):
+    model = CheckerFormatForContest
+    category = _("Advanced")
+
+
+class CheckerFormatForProblemInline(admin.StackedInline):
+    model = CheckerFormatForProblem
+    category = _("Advanced")
+
+
+class CheckerFormatOverrideContestAdminMixin(object):
+    """Adds :class:`~oioioi.programs.models.CheckerFormatForContest` to an admin
+    panel.
+    """
+    def __init__(self, *args, **kwargs):
+        super(CheckerFormatOverrideContestAdminMixin, self).__init__(*args, **kwargs)
+        self.inlines = tuple(self.inlines) + (CheckerFormatForContestInline,)
+
+
+ContestAdmin.mix_in(CheckerFormatOverrideContestAdminMixin)
+
+
+class CheckerFormatOverrideProblemAdminMixin(object):
+    """Adds :class:`~oioioi.programs.models.CheckerFormatForProblem` to an admin
+    panel.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(CheckerFormatOverrideProblemAdminMixin, self).__init__(*args, **kwargs)
+        self.inlines = tuple(self.inlines) + (CheckerFormatForProblemInline,)
+
+
+ProblemInstanceAdmin.mix_in(CheckerFormatOverrideProblemAdminMixin)

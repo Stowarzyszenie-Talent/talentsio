@@ -4,6 +4,8 @@ import sys
 
 from oioioi.base.utils.finders import find_executable_path
 
+from pathlib import Path
+
 if sys.version_info < (2, 6):
     raise RuntimeError("OIOIOI needs at least Python 2.6")
 
@@ -14,6 +16,8 @@ from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
 
 import oioioi
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 INSTALLATION_CONFIG_VERSION = 49
 
@@ -91,14 +95,10 @@ LOCALE_PATHS = [
     os.path.join(os.path.dirname(oioioi.__file__), '_locale/locale-overrides'),
 ]
 
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale.
-USE_L10N = False
-
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
-DATETIME_FORMAT = 'Y-m-d H:i:s'
+FORMAT_MODULE_PATH = 'oioioi.formats'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -161,6 +161,13 @@ PROBLEMSET_LINK_VISIBLE = True
 
 # Set to true to show tags on the list of problems
 PROBLEM_TAGS_VISIBLE = False
+
+# Only relevant with PROBLEM_TAGS_VISIBLE set to True
+SHOW_TAG_PROPOSALS_IN_PROBLEMSET = False
+
+# Only relevant with SHOW_TAG_PROPOSALS_IN_PROBLEMSET set to True
+PROBSET_SHOWN_TAG_PROPOSALS_LIMIT = 3
+PROBSET_MIN_AMOUNT_TO_CONSIDER_TAG_PROPOSAL = 10
 
 # Enables problem statistics at the cost of some per-submission performance hit.
 # Set to True if you want to see statistics in the Problemset and problem sites.
@@ -344,7 +351,14 @@ AUTHENTICATION_BACKENDS = (
 ACCOUNT_ACTIVATION_DAYS = 7
 
 FILETRACKER_CLIENT_FACTORY = 'oioioi.filetracker.client.remote_storage_factory'
-DEFAULT_FILE_STORAGE = 'oioioi.filetracker.storage.FiletrackerStorage'
+STORAGES = {
+    "default": {
+        "BACKEND": 'oioioi.filetracker.storage.FiletrackerStorage',
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 FILETRACKER_SERVER_ENABLED = True
 FILETRACKER_LISTEN_ADDR = os.getenv('FILETRACKER_LISTEN_ADDR', '127.0.0.1')
@@ -374,6 +388,7 @@ PAGINATION_DEFAULT_WINDOW = 4
 PAGINATION_DEFAULT_MARGIN = 1
 FILES_ON_PAGE = 100
 PROBLEMS_ON_PAGE = 100
+CONTESTS_ON_PAGE = 20
 QUESTIONS_ON_PAGE = 30
 SUBMISSIONS_ON_PAGE = 100
 PARTICIPANTS_ON_PAGE = 100
@@ -875,6 +890,7 @@ FORUM_PAGE_SIZE = 15
 FORUM_THREADS_PER_PAGE = 30
 FORUM_POSTS_PER_PAGE = 30
 FORUM_POST_MAX_LENGTH = 20000
+FORUM_REACTIONS_TO_DISPLAY = 10
 
 # Check seems to be broken. https://stackoverflow.com/a/65578574
 SILENCED_SYSTEM_CHECKS = ['admin.E130']
@@ -901,3 +917,17 @@ TALENT_ROOM_REGEX = r'^([1-9][0-9]{0,2}|Rodzinny)$'
 SITE_DOMAIN = "example.com"
 
 HIDE_2FA = False
+
+REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = [
+    'rest_framework.throttling.AnonRateThrottle',
+    'rest_framework.throttling.UserRateThrottle'
+]
+REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
+    'anon': '1000/day',
+    'user': '1000/hour'
+}
+
+STATICFILES_DIRS = [
+    BASE_DIR / "dist_webpack",
+    BASE_DIR / "node_modules"
+]

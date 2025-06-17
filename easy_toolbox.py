@@ -6,7 +6,7 @@
 #
 # system:
 #   docker
-#   docker-compose
+#   docker compose (V2)
 
 
 # This script was created in order to help the users
@@ -19,16 +19,18 @@ import os
 import sys
 from shlex import quote
 
-BASE_DOCKER_COMMAND = "OIOIOI_UID=$(id -u) docker-compose" + \
+BASE_DOCKER_COMMAND = "OIOIOI_UID=$(id -u) docker compose" + \
                       " -f docker-compose-dev.yml"
 
 RAW_COMMANDS = [
     ("build", "Build OIOIOI container from source.", "build", True),
     ("up", "Run all SIO2 containers", "up -d"),
-    ("down", "Stop and remove all SIO2 containers", "down"),
-    ("logs", "Print and follow logs", "logs -n 20 -f"),
     ("restart-uwsgi", "Restart uwsgi", "{exec} web ./manage.py supervisor restart uwsgi"),
-    ("run", "Run server", "{exec} web python3 manage.py runserver 0.0.0.0:8000"),
+    ("logs", "Print and follow logs", "logs -n 20 -f"),
+    ("down", "Stop and remove all SIO2 containers", "down"),
+    ("wipe", "Stop all SIO2 containers and DESTROY all data", "down -v", True),
+    ("run", "Run django server and webpack", 
+     '{exec} web conc -n js,py -c yellow,green -k "npm --prefix ../oioioi run -s watch" "python3 manage.py runserver 0.0.0.0:8000"'),
     ("stop", "Stop all SIO2 containers", "stop"),
     ("bash", "Open command prompt on web container.", "{exec} web bash"),
     ("exec", "Run a command in the web container.", "{exec} web {extra_args}"),
@@ -45,6 +47,8 @@ RAW_COMMANDS = [
      "{exec} 'web' ../oioioi/test.sh oioioi/problems --cov-report term --cov-report xml:coverage.xml --cov=oioioi {extra_args}"),
     ("cypress-apply-settings", "Apply settings for CyPress.",
      '{exec} web bash -c "echo CAPTCHA_TEST_MODE=True >> settings.py"'),
+    ("npm", "Run npm command.", "{exec} web npm --prefix ../oioioi {extra_args}"),
+    ("eslint", "Run javascript linter.", "{exec} web npm --prefix ../oioioi run lint"),
 ]
 
 longest_command_arg = max([len(command[0]) for command in RAW_COMMANDS])

@@ -66,6 +66,7 @@ INSTALLED_APPS = (
     'oioioi.problemsharing',
     'oioioi.usercontests',
     'oioioi.mp',
+    'oioioi.welcomepage',
 ) + INSTALLED_APPS
 
 TEMPLATES[0]['OPTIONS']['context_processors'] += [

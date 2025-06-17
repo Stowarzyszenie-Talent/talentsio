@@ -71,6 +71,18 @@ def can_admin_problem(request, problem):
     return False
 
 
+def can_modify_tags(request, problem):
+    """Checks if the user can add tags to the problem.
+
+    The user can modify tags if user can admin problem or user has can_modify_tags permission
+    """
+    if request.user.has_perm('problems.can_modify_tags'):
+        return True
+    if problem is None:
+        return False
+    return can_admin_problem(request, problem)
+
+
 def can_admin_instance_of_problem(request, problem):
     """Checks if the user has admin permission in a ProblemInstace
     of the given Problem.
@@ -189,20 +201,22 @@ def update_tests_from_main_pi(problem_instance, source_instance=None):
             )
 
 
-def get_new_problem_instance(problem, contest=None):
+def get_new_problem_instance(problem, contest=None, round=None):
     """Returns a deep copy of problem.main_problem_instance,
     with an independent set of test. Returned ProblemInstance
     is already saved and contains model solutions.
     """
     pi = problem.main_problem_instance
-    return copy_problem_instance(pi, contest)
+    return copy_problem_instance(pi, contest, round)
 
 
-def copy_problem_instance(pi, contest=None):
+def copy_problem_instance(pi, contest=None, round=None):
     """Returns a deep copy of pi,
     with an independent set of test. Returned ProblemInstance
     is already saved and contains model solutions.
     """
+    if round is not None:
+        assert contest is not None and round.contest_id == contest.id
     orig_pk = pi.pk
 
     pi.id = None
@@ -211,7 +225,7 @@ def copy_problem_instance(pi, contest=None):
     pi.contest = contest
     if contest is not None:
         pi.submissions_limit = contest.default_submissions_limit
-    pi.round = None
+    pi.round = round
     pi.save()
 
     orig_pi = ProblemInstance.objects.get(pk=orig_pk)
@@ -411,6 +425,7 @@ def filter_my_all_visible_submissions(request, queryset):
 
     result = Submission.objects.none()
     resolved = set()
+    prev_contest = request.contest
 
     for submission in queryset:
         pi = submission.problem_instance
@@ -434,5 +449,8 @@ def filter_my_all_visible_submissions(request, queryset):
             request, current_queryset
         )
         result = result.union(current_queryset)
+        if hasattr(request, '_cache'): # Delete cache so that e.g. `is_contest_basicadmin` doesn't return wrong results
+            delattr(request, '_cache')
+    request.contest = prev_contest
 
     return result
