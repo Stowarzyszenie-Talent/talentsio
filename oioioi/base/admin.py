@@ -129,7 +129,9 @@ class ModelAdmin(
 
         if request.POST:  # The user has already confirmed the deletion.
             obj_display = force_str(obj)
-            self.log_deletions(request, (obj,))
+            # TODO: remove after full migration to django 5 (held back by nixpkgs).
+            if hasattr(self, 'log_deletions'):
+                self.log_deletions(request, (obj,))
             self.delete_model(request, obj)
             self.message_user(
                 request,
@@ -221,7 +223,8 @@ def delete_selected(modeladmin, request, queryset, **kwargs):
             raise PermissionDenied
         n = queryset.count()
         if n:
-            modeladmin.log_deletions(request, queryset)
+            if hasattr(modeladmin, 'log_deletions'):
+                modeladmin.log_deletions(request, queryset)
             modeladmin.delete_queryset(request, queryset)
             message_text = _("Successfully deleted %(count)d %(items)s.") % {
                 "count": n,

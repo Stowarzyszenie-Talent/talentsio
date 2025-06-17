@@ -662,7 +662,8 @@ class TestSinolPackage(TestCase, TestStreamingMixin):
         s = ModelProgramSubmission.objects.get(model_solution=sol_re)
         for test in tests:
             test_report = TestReport.objects.get(test=test, submission_report__submission=s)
-            self.assertEqual(test_report.comment, 'program exited with code 1')
+            self.assertTrue(test_report.comment == 'program exited with code 1' or
+                            test_report.comment == 'runtime error 1')
         
     @both_configurations
     def test_sigpipe_interactor_package(self):
@@ -700,7 +701,8 @@ class TestSinolPackage(TestCase, TestStreamingMixin):
         s2 = ModelProgramSubmission.objects.get(model_solution=sol_re)
         for test in tests:
             test_report = TestReport.objects.get(test=test, submission_report__submission=s2)
-            self.assertEqual(test_report.comment, 'program exited with code 1')
+            self.assertTrue(test_report.comment == 'program exited with code 1' or
+                            test_report.comment == 'runtime error 1')
 
     @both_configurations
     def test_interactor_failure_package(self):

@@ -10,11 +10,21 @@ from oioioi.questions.models import NewsMessage, AddQuestionMessage
 
 # taken from django.contrib.admin.options.ModelAdmin
 def log_addition(request, object):
-    LogEntry.objects.log_actions(
-        user_id=request.user.pk,
-        queryset=(object,),
-        action_flag=ADDITION,
-    )
+    # TODO: cleanup after completing django 5 migration.
+    if hasattr(LogEntry.objects, 'log_actions'):
+        LogEntry.objects.log_actions(
+            user_id=request.user.pk,
+            queryset=(object,),
+            action_flag=ADDITION,
+        )
+    else:
+        LogEntry.objects.log_action(
+            user_id=request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(object).pk,
+            object_id=object.pk,
+            object_repr=force_str(object),
+            action_flag=ADDITION,
+        )
 
 
 def get_categories(request):

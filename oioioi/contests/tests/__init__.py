@@ -74,11 +74,13 @@ def make_empty_contest_formset():
         ('exclusivenessconfig_set', 0, 0, 0, 1000),
         ('complaints_config', 1, 0, 0, 1),
         ('disqualifications_config', 1, 0, 0, 1),
+        ('scores_reveal_config', 1, 0, 0, 1),
         ('contesticon_set', 0, 0, 0, 1000),
         ('contestlogo', 1, 0, 0, 1),
         ('programs_config', 1, 1, 0, 1),
         ('contestcompiler_set', 0, 0, 0, 1000),
-        ('checkerformatforcontest', 0, 0, 0, 1)
+        ('checkerformatforcontest', 0, 0, 0, 1),
+        ('talent_parent_contest', 1, 0, 0, 1),
     )
     data = dict()
     for (name, total, initial, min_num, max_num) in formsets:

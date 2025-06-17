@@ -1000,10 +1000,15 @@ class SubmissionAdmin(admin.ModelAdmin):
         )
         return queryset
 
-    def lookup_allowed(self, key, value, request):
+    # TODO: cleanup after completing django 5 migration.
+    def lookup_allowed(self, key, value, request="deadbeef"):
         if key == 'user__username':
             return True
-        return super(SubmissionAdmin, self).lookup_allowed(key, value, request)
+        # Epic hack.
+        if request != "deadbeef":
+            return super(SubmissionAdmin, self).lookup_allowed(key, value, request)
+        else:
+            return super(SubmissionAdmin, self).lookup_allowed(key, value)
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         _contest_id = None

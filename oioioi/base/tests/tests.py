@@ -1265,13 +1265,23 @@ class TestLoginChange(TestCase):
 
             response = self.client.get(self.url_edit_profile)
             # The html strings underneath may change with any django upgrade.
-            self.assertContains(
-                response,
-                '<input type="text" name="username" value="%s" '
-                'maxlength="150" class="form-control" required="" '
-                'aria-describedby="id_username_helptext" id="id_username">' % l,
-                html=True,
-            )
+            import django
+            if django.get_version()[0] == '4':
+                self.assertContains(
+                    response,
+                    '<input type="text" id="id_username" name="username" '
+                    'value="%s" class="form-control" '
+                    'maxlength="150" required />' % l,
+                    html=True,
+                )
+            else:
+                self.assertContains(
+                    response,
+                    '<input type="text" name="username" value="%s" '
+                    'maxlength="150" class="form-control" required="" '
+                    'aria-describedby="id_username_helptext" id="id_username">' % l,
+                    html=True,
+                )
 
             self.client.post(
                 self.url_edit_profile,
@@ -1284,13 +1294,22 @@ class TestLoginChange(TestCase):
             self.assertNotContains(response, 'contains not allowed characters')
 
             response = self.client.get(self.url_edit_profile)
-            self.assertContains(
-                response,
-                '<input type="text" name="username" value="valid_user" '
-                'maxlength="150" readonly="" class="form-control" required="" '
-                'aria-describedby="id_username_helptext" id="id_username">',
-                html=True,
-            )
+            if django.get_version()[0] == '4':
+                self.assertContains(
+                    response,
+                    '<input type="text" id="id_username" name="username" '
+                    'value="valid_user" class="form-control" '
+                    'maxlength="150" readonly required />',
+                    html=True,
+                )
+            else:
+                self.assertContains(
+                    response,
+                    '<input type="text" name="username" value="valid_user" '
+                    'maxlength="150" readonly="" class="form-control" required="" '
+                    'aria-describedby="id_username_helptext" id="id_username">',
+                    html=True,
+                )
 
     def test_login_cannot_change_from_valid(self):
         for l in self.valid_logins:
@@ -1298,13 +1317,23 @@ class TestLoginChange(TestCase):
             self.user.save()
 
             response = self.client.get(self.url_edit_profile)
-            self.assertContains(
-                response,
-                '<input type="text" name="username" value="%s" '
-                'maxlength="150" readonly="" class="form-control" required="" '
-                'aria-describedby="id_username_helptext" id="id_username">' % l,
-                html=True,
-            )
+            import django
+            if django.get_version()[0] == '4':
+                self.assertContains(
+                    response,
+                    '<input type="text" id="id_username" name="username" '
+                    'value="%s" class="form-control" '
+                    'maxlength="150" readonly required />' % l,
+                    html=True,
+                )
+            else:
+                self.assertContains(
+                    response,
+                    '<input type="text" name="username" value="%s" '
+                    'maxlength="150" readonly="" class="form-control" required="" '
+                    'aria-describedby="id_username_helptext" id="id_username">' % l,
+                    html=True,
+                )
 
             response = self.client.post(
                 self.url_edit_profile,
