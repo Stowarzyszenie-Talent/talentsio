@@ -144,11 +144,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1729242078,
-        "narHash": "sha256-HImtuFPtMuLY3KdBK5d08kFgANHtg9hz9v7frq88Jy4=",
+        "lastModified": 1753304480,
+        "narHash": "sha256-TAEYfA7u6ELpGYpk9cTyBNg0L82y/EnneZ2DvFZ36K4=",
         "owner": "Stowarzyszenie-Talent",
         "repo": "sioworkers",
-        "rev": "60039e7d5634f92685a3ffaad5cc66bb8003a6cd",
+        "rev": "85db364e472d47827a651e4ac6edaca675bf4fd5",
         "type": "github"
       },
       "original": {
