@@ -1,8 +1,10 @@
 import bleach
 from django import forms
 from django.forms import ValidationError
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from oioioi.base.utils.user_selection import UserSelectionField
 from oioioi.contests.models import Round
 from oioioi.participants.models import (
     OpenRegistration,
@@ -13,9 +15,16 @@ from oioioi.participants.models import (
 
 
 class ParticipantForm(forms.ModelForm):
+    user = UserSelectionField(label=_("Username"),)
+
     class Meta(object):
         fields = '__all__'
         model = Participant
+
+    def __init__(self, *args, **kwargs):
+        super(ParticipantForm, self).__init__(*args, **kwargs)
+        # Non-superusers will get 403 on this.
+        self.fields['user'].hints_url = reverse('all_users_search')
 
     def clean_user(self):
         if Participant.objects.filter(

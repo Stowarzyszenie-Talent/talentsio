@@ -41,7 +41,6 @@ class ParticipantAdmin(admin.ModelAdmin):
     fields = [
         ('user', 'status'),
     ]
-    autocomplete_fields = ['user',]
     search_fields = ['user__username', 'user__last_name']
     actions = ('make_active', 'make_banned', 'delete_selected', 'extend_round')
     form = ParticipantForm
