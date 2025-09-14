@@ -144,9 +144,12 @@ class Command(BaseCommand):
                 }
             )
 
-            # Supervision groups
-            for i in settings.TALENT_SUPERVISED_IDS:
+            # Supervisions groups
+            for i in settings.TALENT_CONTEST_IDS:
                 group, _ = Group.objects.get_or_create(name=contest_names[i])
+                if i not in settings.TALENT_SUPERVISED_IDS:
+                    Supervision.objects.filter(group=group).delete()
+                    continue
                 # Supervisions
                 for r in Round.objects.filter(contest_id=i):
                     Supervision.objects.update_or_create(
