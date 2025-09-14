@@ -58,6 +58,8 @@ USER oioioi
 
 ENV PATH $PATH:/home/oioioi/.local/bin/
 
+ENV PYTHONPATH="${PYTHONPATH:+$PYTHONPATH:}/sio2/oioioi"
+
 RUN pip3 install --user psycopg2-binary==2.9.9 twisted uwsgi
 RUN pip3 install --user bsddb3==6.2.9
 
