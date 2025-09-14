@@ -898,6 +898,8 @@ TALENT_CONTEST_IDS = []
 
 TALENT_ROOM_REGEX = r'^([1-9][0-9]{0,2}|Rodzinny)$'
 
+TALENT_RESTRICT_USERNAMES = False
+
 SITE_DOMAIN = "example.com"
 
 HIDE_2FA = False

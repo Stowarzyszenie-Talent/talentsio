@@ -8413,3 +8413,9 @@ msgstr "C++ reference"
 
 msgid "Recalculate scores"
 msgstr "Recalculate scores"
+
+msgid "The required login format is the first letter of the name and the whole surname. Only lowercase latin letters are allowed (no Polish letters). For example: Jakub Rożek --> jrozek."
+msgstr "The required login format is the first letter of the name and the whole surname. Only lowercase latin letters are allowed (no Polish letters). For example: Jakub Rożek --> jrozek."
+
+msgid "Your login must be the following: "
+msgstr "Your login must be the following: "

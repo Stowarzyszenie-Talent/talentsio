@@ -1,6 +1,7 @@
 # coding: utf-8
 import bleach
 from collections import OrderedDict
+from unidecode import unidecode
 
 from captcha.fields import CaptchaField, CaptchaTextInput
 from django import forms
@@ -27,6 +28,10 @@ from oioioi.base.utils.validators import UnicodeValidator, ValidationError
 
 def adjust_username_field(form):
     help_text = _("This value may contain only letters, numbers and underscore.")
+    if settings.TALENT_RESTRICT_USERNAMES:
+        help_text = _("The required login format is the first letter of the name and the whole surname. " + 
+                      "Only lowercase latin letters are allowed (no Polish letters). " +
+                      "For example: Jakub Rożek --> jrozek.")
     form.fields['username'].error_messages['invalid'] = _("Invalid username")
     form.fields['username'].help_text = help_text
     form.fields['username'].validators += [RegexValidator(regex=USERNAME_REGEX)]
@@ -212,6 +217,27 @@ class RegistrationFormWithNames(RegistrationForm):
             {'captcha': CaptchaField(label='', widget=CustomCaptchaTextInput)}
         )
         adjust_name_fields(self)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not settings.TALENT_RESTRICT_USERNAMES:
+            return cleaned_data
+        if 'first_name' not in cleaned_data or 'last_name' not in cleaned_data:
+            return cleaned_data
+        username = cleaned_data.get('username', "")
+        good_username = unidecode(cleaned_data['first_name'])[0]
+        good_username += unidecode(cleaned_data['last_name'])
+        good_username = good_username.lower()
+        i = 2
+        while User.objects.filter(username=good_username).exists():
+            good_username = good_username.rstrip("0123456789")
+            good_username += str(i)
+            i += 1
+        if username != good_username:
+            raise ValidationError(
+                _("Your login must be the following: ") + good_username
+            )
+        return cleaned_data
 
 
 class UserForm(forms.ModelForm):

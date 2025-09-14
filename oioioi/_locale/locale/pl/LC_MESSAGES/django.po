@@ -10412,6 +10412,12 @@ msgstr "Dokumentacja C++"
 msgid "Recalculate scores"
 msgstr "Odśwież wyniki"
 
+msgid "The required login format is the first letter of the name and the whole surname. Only lowercase latin letters are allowed (no Polish letters). For example: Jakub Rożek --> jrozek."
+msgstr "Login musi być postaci pierwsza litera imienia + całe nazwisko. Tylko małe litery alfabetu łacińskiego są dozwolone (brak polskich znaków). Przykładowo: Jakub Rożek --> jrozek."
+
+msgid "Your login must be the following: "
+msgstr "Twój login musi być następujący: "
+
 #: sio fixes
 msgid "unknown"
 msgstr "nieznany"
