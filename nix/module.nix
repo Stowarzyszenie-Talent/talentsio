@@ -309,9 +309,9 @@ in
           base_url = "https://otsrv.net/sandboxes";
         in
         lib.mkIf cfg.defaultFiletrackerEnsureFiles {
-          "/sandboxes/compiler-gcc.12_2_0.tar.gz" = pkgs.fetchurl {
-            url = "${base_url}/compiler-gcc.12_2_0.tar.gz";
-            hash = "sha256-APPGBb4ek3WGFAwA7N6UxQwMppWzrVB1yDIpr1waeC4=";
+          "/sandboxes/compiler-gcc.14_2_0.tar.gz" = pkgs.fetchurl {
+            url = "${base_url}/compiler-gcc.14_2_0.tar.gz";
+            hash = "sha256-o7jo24itpIQty/P84pzCMZtSrV0nr9mxkTfms9uSias=";
           };
           "/sandboxes/compiler-fpc.2_6_2.tar.gz" = pkgs.fetchurl {
             url = "${base_url}/compiler-fpc.2_6_2.tar.gz";
