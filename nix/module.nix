@@ -380,7 +380,11 @@ in
               reverse_proxy /socket.io/* 127.0.0.1:7887 {
                   header_down +Cache-Control max-age=3600 # 1h
               }
-              reverse_proxy 127.0.0.1:8000
+              reverse_proxy 127.0.0.1:8000 {
+                  transport http {
+                      max_conns_per_host 50
+                  }
+              }
             '' + (if cfg.certPath != null then ''
               tls ${cfg.certPath} ${cfg.keyPath}
             '' else "") + (if cfg.caddyInternalTLS then ''
@@ -658,7 +662,7 @@ in
               --lazy-apps -M --max-requests=5000 --disable-logging --need-app \
               --enable-threads --socket-timeout=30 --ignore-sigpipe \
               --ignore-write-errors --disable-write-exception \
-              --wsgi-file=/var/run/sio2/wsgi.py
+              --wsgi-file=/var/run/sio2/wsgi.py -l 4000
             '';
 
             reload = ''
