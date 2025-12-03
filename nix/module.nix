@@ -725,6 +725,32 @@ in
             };
           };
 
+          rankingsd2 = mkSioProcess {
+            name = "rankingsd2";
+            requiresDatabase = true;
+
+            serviceConfig = {
+              ExecStart = ''
+                ${managePy}/bin/sio-manage rankingsd
+              '';
+
+              StateDirectory = "sio2";
+            };
+          };
+
+          rankingsd3 = mkSioProcess {
+            name = "rankingsd3";
+            requiresDatabase = true;
+
+            serviceConfig = {
+              ExecStart = ''
+                ${managePy}/bin/sio-manage rankingsd
+              '';
+
+              StateDirectory = "sio2";
+            };
+          };
+
           mailnotifyd = mkSioProcess {
             name = "mailnotifyd";
             requiresDatabase = true;

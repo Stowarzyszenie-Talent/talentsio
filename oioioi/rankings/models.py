@@ -143,7 +143,11 @@ def clamp(minimum, x, maximum):
 def choose_for_recalculation():
     now = timezone.now()
     r = (
-        Ranking.objects.filter(needs_recalculation=True, cooldown_date__lt=now)
+        Ranking.objects.filter(
+            needs_recalculation=True,
+            cooldown_date__lt=now,
+            recalc_in_progress=None,
+        )
         .order_by('last_recalculation_date')
         .select_for_update()
         .first()
