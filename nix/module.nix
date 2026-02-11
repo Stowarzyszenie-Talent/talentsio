@@ -329,6 +329,10 @@ in
             url = "${base_url}/sio2jail_exec-sandbox-1.4.4.tar.gz";
             hash = "sha256-yZuLv5VBZj/OKXcOl7QzQ5JltpgFBkd/2Guswdnh4VY=";
           };
+          "/sandboxes/sio2jail_exec-sandbox-1.5.3.tar.gz" = pkgs.fetchurl {
+            url = "${base_url}/sio2jail_exec-sandbox-1.5.3.tar.gz";
+            hash = "sha256-UGOza8/M5lfoY2NGgZ7ipzbu93yRV9JnpiPur848ILU=";
+          };
         };
       users.extraGroups.sio2 = { };
 
