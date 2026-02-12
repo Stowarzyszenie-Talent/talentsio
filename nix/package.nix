@@ -207,7 +207,8 @@ buildPythonPackage rec {
   passthru = {
     o-texlive = (
       pkgs.texlive.combine { inherit (pkgs.texlive)
-        scheme-small collection-langpolish collection-fontsrecommended
+        scheme-small collection-langpolish
+        collection-fontsrecommended collection-fontsextra
         collection-latexrecommended collection-latexextra
         pst-barcode tex-gyre pstricks auto-pst-pdf pst-pdf
         pslatex luatex85 epsf;
