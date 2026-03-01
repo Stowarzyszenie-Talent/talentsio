@@ -1,5 +1,5 @@
 import calendar
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from django.conf import settings
 from django.contrib import messages as django_messages
@@ -493,7 +493,7 @@ def increment_template_usage_view(request, template_id=None):
 def check_new_messages_view(request, topic_id):
     timestamp = int(request.GET['timestamp'])
     # utcfromtimestamp returns a naive datetime
-    date = datetime.utcfromtimestamp(timestamp).replace(tzinfo=timezone.utc)
+    date = datetime.fromtimestamp(timestamp, UTC)
     output = [
         [
             x.topic,

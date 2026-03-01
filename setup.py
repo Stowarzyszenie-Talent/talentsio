@@ -37,7 +37,7 @@ requirements = [
     "django-libsass>=0.9,<0.10",
     "django-debug-toolbar",
     "django-extensions>=3.2,<3.3",
-    "djangorestframework>=3.14,<3.15",
+    "djangorestframework>=3.16,<3.17",
     "Werkzeug",
     "pytest>=7.2,<8.0",
     "pytest-cov>=4.0,<5.0",
@@ -62,7 +62,7 @@ requirements = [
     # Used in quizzes module for adding new quizzes.
     "django-nested-admin>=4.1,<4.2",
     # Library for parsing dates and timedelta
-    "humanize<=4.9.0",
+    "humanize>=4.9.0",
     # SIO2 dependencies:
     "filetracker-talent>=2.2.0,<3.0",
     "django-simple-captcha>=0.6,<0.7",

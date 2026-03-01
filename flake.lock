@@ -29,11 +29,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1750243626,
-        "narHash": "sha256-5/KKoGUKMURZnmZPSveWD5d3HVuw9LWE+V08PaSeusY=",
+        "lastModified": 1750272194,
+        "narHash": "sha256-wAMChr/lCKFOCEI5UkgrEDBdWXgRXmM+TZOMn2tOMhQ=",
         "owner": "Stowarzyszenie-Talent",
         "repo": "filetracker",
-        "rev": "272ffc17fbbbff880c2c02f47027f151da8a66d8",
+        "rev": "ec5e3dd005baf4f82bd822ba06c34e3992f875f2",
         "type": "github"
       },
       "original": {
@@ -116,11 +116,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1750241131,
-        "narHash": "sha256-scJv+tYIutlRnntBmDmayhE7JMtZHcdrlnGJgwm9uBs=",
+        "lastModified": 1762852306,
+        "narHash": "sha256-VZZdJBeCgttt66Su2Qd97cpx1cjlyzmuq8LVJV1Q+sA=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "c43a69b3593edfe8a54c1f966ea1ad37387d5d61",
+        "rev": "0b5980c4cf100adaf575272e371acaf49fba7c44",
         "type": "github"
       },
       "original": {
@@ -150,11 +150,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1750189211,
-        "narHash": "sha256-XUylNm2/OZanxn2RwzlxNXHx/vgbvPld3KqlLtYeLCw=",
+        "lastModified": 1762858252,
+        "narHash": "sha256-efI6iXc+Vjc8j+5YFih2XvkEo5kcwyM3McVAMVaFnX0=",
         "owner": "Stowarzyszenie-Talent",
         "repo": "sioworkers",
-        "rev": "2504dbc1ec4c701cccbca7f0543bedcc35a307ee",
+        "rev": "521e75218ecf346a9f36f634de3ad1eee36ebdc6",
         "type": "github"
       },
       "original": {

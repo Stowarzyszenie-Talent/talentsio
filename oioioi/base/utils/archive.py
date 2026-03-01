@@ -243,6 +243,15 @@ class TarArchive(BaseArchive):
             if finfo.islnk():
                 raise UnsafeArchive("Archive contains hardlink: " + finfo.name)
 
+    def _extract(self, to_path):
+        """
+        Performs the actual extraction.  Separate from 'extract' method so that
+        we don't recurse when subclasses don't declare their own 'extract'
+        method.
+        """
+        self._archive.extractall(to_path, filter='data')
+
+
 
 class ZipArchive(BaseArchive):
     def __init__(self, file):

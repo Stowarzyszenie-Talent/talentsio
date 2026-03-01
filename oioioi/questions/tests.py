@@ -1,5 +1,5 @@
 from copy import deepcopy
-from datetime import datetime, timezone  # pylint: disable=E0611
+from datetime import UTC, datetime, timezone  # pylint: disable=E0611
 
 try:
     import mock
@@ -133,7 +133,7 @@ class TestQuestions(TestCase):
         self.assertTrue(self.client.login(username='test_user'))
         contest = Contest.objects.get()
         list_url = reverse('contest_messages', kwargs={'contest_id': contest.id})
-        timestamp = make_aware(datetime.utcfromtimestamp(1347025200))
+        timestamp = datetime.fromtimestamp(1347025200, UTC)
         with fake_time(timestamp):
             response = self.client.get(list_url)
         self.assertContains(response, '>NEW<', count=2)

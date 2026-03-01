@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 from django.conf import settings
 from django.contrib import messages
@@ -41,7 +41,7 @@ def get_cppreference(request):
         'name': 'cppreference',
         'description': _("C++ reference"),
         'link': settings.CPPREF_URL,
-        'pub_date': datetime.utcfromtimestamp(0),
+        'pub_date': datetime.fromtimestamp(0, UTC),
     }]
 
 

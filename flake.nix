@@ -48,8 +48,14 @@
           inherit system overlays;
         };
       in
-      {
-        packages.default = pkgs.python311Packages.callPackage ./nix/package.nix { };
+      rec {
+        packages.default = pkgs.python312Packages.callPackage ./nix/package.nix { };
+        devShells.default = let asd = packages.default; in pkgs.mkShell {
+          packages = [ asd asd.nativeBuildInputs asd.buildInputs];
+          shellHook = ''
+            export PYTHONPATH=".:$PYTHONPATH"
+          '';
+        };
         packages.extra-container = extra-container.lib.buildContainers {
           inherit nixpkgs system;
 

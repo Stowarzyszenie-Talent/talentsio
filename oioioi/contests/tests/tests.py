@@ -4,7 +4,7 @@ from __future__ import print_function
 import bs4
 import os
 import re
-from datetime import datetime, timedelta, timezone  # pylint: disable=E0611
+from datetime import UTC, datetime, timedelta, timezone  # pylint: disable=E0611
 
 import pytest
 import pytz
@@ -4071,6 +4071,11 @@ class TestAPISubmitBase(APITestCase):
         kind=None,
     ):
         url = reverse(url_name, kwargs=url_kwargs)
+        print(url)
+        print([pi.id for pi in ProblemInstance.objects.all()])
+        print([pi.short_name for pi in ProblemInstance.objects.all()])
+        print([pi.contest for pi in ProblemInstance.objects.all()])
+        print([c for c in Contest.objects.all()])
         file = ContentFile(b'a' * file_size, name=file_name)
         post_data = {'file': file}
         if kind:
@@ -4087,7 +4092,15 @@ class TestAPISubmitBase(APITestCase):
 class TestAPIContestSubmit(TestAPISubmitBase):
     extra_fixtures = ['test_problem_instance']
 
+    def __init__(self, *args, **kwargs):
+        self.fixtures += self.extra_fixtures
+        super(TestAPIContestSubmit, self).__init__(*args, **kwargs)
+
+    def setUp(self):
+        super().setUp()
+
     def contest_submit(self, contest, pi, *args, **kwargs):
+        print(pi.id)
         return self.submit_file(
             'api_contest_submit',
             {'contest_name': contest.id, 'problem_short_name': pi.short_name},
@@ -4098,6 +4111,7 @@ class TestAPIContestSubmit(TestAPISubmitBase):
     def test_simple_submission(self):
         contest = Contest.objects.get()
         problem_instance = ProblemInstance.objects.get(pk=1)
+        assert problem_instance.contest == contest
         round = Round.objects.get()
         round.start_date = datetime(2012, 7, 31, tzinfo=timezone.utc)
         round.end_date = datetime(2012, 8, 10, tzinfo=timezone.utc)
@@ -4477,19 +4491,19 @@ class TestOpenRegistration(TestCase):
         check_registration(self, 403, 'NO')
 
     def test_configured_registration_opened(self):
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         available_from = now - timedelta(days=1)
         available_to = now + timedelta(days=1)
         check_registration(self, 200, 'CONFIG', available_from, available_to)
 
     def test_configured_registration_closed_before(self):
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         available_from = now + timedelta(hours=1)
         available_to = now + timedelta(days=1)
         check_registration(self, 200, 'CONFIG', available_from, available_to, 'registration_not_open_yet')
 
     def test_configured_registration_closed_after(self):
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         available_from = now - timedelta(hours=1)
         available_to = now - timedelta(minutes=5)
         check_registration(self, 403, 'CONFIG', available_from, available_to)
