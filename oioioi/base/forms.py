@@ -227,7 +227,7 @@ class RegistrationFormWithNames(RegistrationForm):
         username = cleaned_data.get('username', "")
         good_username = unidecode(cleaned_data['first_name'])[0]
         good_username += unidecode(cleaned_data['last_name'])
-        good_username = good_username.lower()
+        good_username = good_username.lower().replace(" ", "").replace("-", "")
         i = 2
         while User.objects.filter(username=good_username).exists():
             good_username = good_username.rstrip("0123456789")
