@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.contrib import messages
@@ -16,7 +16,9 @@ from oioioi.base.permissions import (
 )
 from oioioi.base.navbar_links import navbar_links_registry
 from oioioi.base.utils.pdf import generate_pdf
+from oioioi.base.utils.execute import execute
 from oioioi.contests.attachment_registration import attachment_registry
+from oioioi.contests.models import Contest
 from oioioi.contests.utils import contest_exists, is_contest_admin
 from oioioi.talent.forms import TalentRegistrationRoomForm
 from oioioi.talent.models import TalentRegistration
@@ -83,33 +85,53 @@ def talent_camp_data_view(request):
     )
 
 
+def make_att_list_pdf(contest, date):
+    participants = list(TalentRegistration.objects.filter(
+        contest_id=contest.id,
+    ).order_by('user__last_name').select_related('user'))
+    tex_code = get_template("talent/attendance_list.tex").render(context={
+        'participants': participants,
+        'contest': contest,
+        'curr_date': datetime.strftime(date, "%d.%m.%Y"),
+    })
+    return (generate_pdf(
+        tex_code,
+        "obecnosc_{}_{}.pdf".format(date, contest.id.upper()),
+    ), len(participants) > 0)
+
+
 @enforce_condition(contest_exists & is_contest_admin)
-def talent_att_list_gen_view(request):
-    now = request.timestamp
-    closest_round = request.contest.round_set.filter(
-        results_date__gt=now,
-    ).order_by('start_date').first()
-    if closest_round is not None:
-        initial_date = closest_round.start_date.date()
-    else:
-        initial_date = now
-    form = TalentRegistrationGenAttForm(initial={'date': initial_date})
+def talent_att_list_gen_view(request, print_all=False):
     if request.method == 'POST':
-        qs = TalentRegistration.objects.filter(
-            contest_id=request.contest.id,
-        ).order_by('user__last_name').select_related('user')
         form = TalentRegistrationGenAttForm(request.POST)
         if form.is_valid():
-            date = datetime.strftime(form.cleaned_data['date'], "%d.%m.%Y")
-            tex_code = get_template("talent/attendance_list.tex").render(context={
-                'participants': qs,
-                'contest': request.contest,
-                'curr_date': date,
-            })
-            return generate_pdf(
-                tex_code,
-                "obecnosc_{}_{}.pdf".format(date, request.contest.id.upper()),
-            )
+            date = form.cleaned_data['date']
+            if not print_all:
+                pdf, _any_users = make_att_list_pdf(request.contest, date)
+                return pdf
+            for c in Contest.objects.filter(id__in=settings.TALENT_CONTEST_IDS).order_by('id'):
+                pdf, any_users = make_att_list_pdf(c, date)
+                if not any_users:
+                    messages.warning(
+                        request,
+                        _("Not printing empty attendance list for contest %(contest)s.") % {"contest": c},
+                    )
+                    continue
+                if getattr(settings, 'TESTS', False):
+                    print(f"Printing attendance list for contest {c}.")
+                else:
+                    execute(['lp', '-o', 'media=a4'], stdin=b"".join(pdf.streaming_content))
+            messages.success(request, _("Attendance lists sent for printing!"))
+            return redirect('oioioiadmin:talent_talentregistration_changelist')
+
+    closest_round = request.contest.round_set.filter(
+        start_date__gt=request.timestamp - timedelta(hours=6),
+    ).order_by('start_date').first()
+    if closest_round is not None:
+        initial_date = closest_round.start_date
+    else:
+        initial_date = request.timestamp
+    form = TalentRegistrationGenAttForm(initial={'date': initial_date.date()})
     return TemplateResponse(
         request,
         'talent/make_att_list.html',

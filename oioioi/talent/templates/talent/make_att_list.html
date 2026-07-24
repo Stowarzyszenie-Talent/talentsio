@@ -17,6 +17,9 @@
         <button type="submit" class="btn btn-primary">
             {% trans "Make attendance list" %}
         </button>
+        <button type="submit" class="btn btn-warning" formaction="{% url 'talent_att_list_print_all' contest_id=contest.id %}">
+            {% trans "Print all attendance lists" %}
+        </button>
     </div>
 </form>
 {% endblock %}

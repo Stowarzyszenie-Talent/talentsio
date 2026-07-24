@@ -12,5 +12,10 @@ contest_patterns = [
     re_path(r'talent_att_list_gen_view/',
         views.talent_att_list_gen_view,
         name='talent_att_list_gen_view',
-    )
+    ),
+    re_path(r'talent_att_list_print_all/',
+        views.talent_att_list_gen_view,
+        {'print_all': True},
+        name='talent_att_list_print_all',
+    ),
 ]
