@@ -357,7 +357,8 @@ class DefaultRankingController(RankingController):
         by_user = defaultdict(dict)
         for r in results:
             by_user[r.user_id][r.problem_instance_id] = r
-        #users = users.filter(id__in=list(by_user.keys()))
+        included = set(by_user.keys()) | self._always_included_user_ids()
+        users = users.filter(id__in=list(included))
         data = []
         all_rounds_trial = all(r.is_trial for r in rounds)
         for user in users.order_by('last_name', 'first_name', 'username'):
@@ -435,12 +436,19 @@ class DefaultRankingController(RankingController):
             'problem_instance__contest',
         )
 
-    def _get_talentregistrations_for_ranking(self, key):
-        talent_user_ids = TalentRegistration.objects.filter(
-            contest=self.contest
-        ).values_list('user_id', flat=True)
+    def _always_included_user_ids(self):
+        """Ids of users shown in the ranking even if they have no results.
 
-        return User.objects.filter(id__in=talent_user_ids)
+        Everyone registered for the contest is listed, so that participants
+        who did not submit anything still appear. Users with results are
+        added on top of this set by :meth:`_get_users_results`, which is
+        what keeps submitters from other contests in the ranking.
+        """
+        return set(
+            TalentRegistration.objects.filter(contest=self.contest).values_list(
+                'user_id', flat=True
+            )
+        )
 
     def serialize_ranking(self, key):
         partial_key = self.get_partial_key(key)
@@ -452,9 +460,7 @@ class DefaultRankingController(RankingController):
             .select_related('problem')
             .prefetch_related('round')
         )
-        users = self.filter_users_for_ranking(key, #User.objects.all()
-            self._get_talentregistrations_for_ranking(key)
-        ).distinct()
+        users = self.filter_users_for_ranking(key, User.objects.all()).distinct()
         results = self._get_results_qs_for_serialization(key).filter(
             problem_instance__in=pis, user__in=users
         )
