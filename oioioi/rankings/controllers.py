@@ -22,6 +22,8 @@ from oioioi.contests.models import Contest, ProblemInstance, UserResultForProble
 from oioioi.contests.utils import is_contest_basicadmin, is_contest_observer
 from oioioi.filetracker.utils import make_content_disposition_header
 from oioioi.rankings.models import Ranking, RankingPage
+from oioioi.talent.models import TalentRegistration
+from oioioi.contests.scores import IntegerScore
 
 CONTEST_RANKING_KEY = 'c'
 
@@ -355,7 +357,7 @@ class DefaultRankingController(RankingController):
         by_user = defaultdict(dict)
         for r in results:
             by_user[r.user_id][r.problem_instance_id] = r
-        users = users.filter(id__in=list(by_user.keys()))
+        #users = users.filter(id__in=list(by_user.keys()))
         data = []
         all_rounds_trial = all(r.is_trial for r in rounds)
         for user in users.order_by('last_name', 'first_name', 'username'):
@@ -387,13 +389,12 @@ class DefaultRankingController(RankingController):
                         user_data['sum'] = result.score
                     else:
                         user_data['sum'] += result.score
-            if user_data['sum'] is not None:
-                # This rare corner case with sum being None may happen if all
-                # user's submissions do not have scores (for example the
-                # problems do not support scoring, or all the evaluations
-                # failed with System Errors).
-                if self._allow_zero_score() or user_data['sum'].to_int() != 0:
-                    data.append(user_data)
+
+            if user_data['sum'] is None:
+                user_data['sum'] = IntegerScore(0)
+
+            if self._allow_zero_score() or user_data['sum'].to_int() != 0:
+                data.append(user_data)
         return data
 
     def _assign_places(self, data, extractor):
@@ -434,6 +435,13 @@ class DefaultRankingController(RankingController):
             'problem_instance__contest',
         )
 
+    def _get_talentregistrations_for_ranking(self, key):
+        talent_user_ids = TalentRegistration.objects.filter(
+            contest=self.contest
+        ).values_list('user_id', flat=True)
+
+        return User.objects.filter(id__in=talent_user_ids)
+
     def serialize_ranking(self, key):
         partial_key = self.get_partial_key(key)
         rounds = list(self._rounds_for_key(key))
@@ -444,7 +452,9 @@ class DefaultRankingController(RankingController):
             .select_related('problem')
             .prefetch_related('round')
         )
-        users = self.filter_users_for_ranking(key, User.objects.all()).distinct()
+        users = self.filter_users_for_ranking(key, #User.objects.all()
+            self._get_talentregistrations_for_ranking(key)
+        ).distinct()
         results = self._get_results_qs_for_serialization(key).filter(
             problem_instance__in=pis, user__in=users
         )
