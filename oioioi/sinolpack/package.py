@@ -643,23 +643,22 @@ class SinolPackage(object):
 
             pdffile = docpathbase + 'pdf'
 
-            if self.config.get("sinol_contest_type", "") == "talent":
-                texfile = docpathbase + 'tex'
-                if os.path.isfile(texfile):
-                    archivedocbase = os.path.join(
-                        self.short_name, "doc", docfilebase,
-                    )
-                    textime = self.archive.get_mtime(archivedocbase + 'tex')
-                    pdftime = -1
-                    if os.path.isfile(pdffile):
-                        pdftime = self.archive.get_mtime(archivedocbase + 'pdf')
-                    if textime - pdftime > 0.1:
-                        logger.info("%s: compiling %s", self.filename, texfile)
-                        execute(['pdflatex', texfile], cwd=docdir)
-                        if not os.path.isfile(pdffile):
-                            raise ProblemPackageError(
-                                _("Problem statement compilation from latex to pdf failed.")
-                            )
+            texfile = docpathbase + 'tex'
+            if os.path.isfile(texfile):
+                archivedocbase = os.path.join(
+                    self.short_name, "doc", docfilebase,
+                )
+                textime = self.archive.get_mtime(archivedocbase + 'tex')
+                pdftime = -1
+                if os.path.isfile(pdffile):
+                    pdftime = self.archive.get_mtime(archivedocbase + 'pdf')
+                if textime - pdftime > 0.1:
+                    logger.info("%s: compiling %s", self.filename, texfile)
+                    execute(['pdflatex', texfile], cwd=docdir)
+                    if not os.path.isfile(pdffile):
+                        raise ProblemPackageError(
+                            _("Problem statement compilation from latex to pdf failed.")
+                        )
 
             if os.path.isfile(pdffile):
                 statement = ProblemStatement(problem=self.problem, language=lang[1:])
