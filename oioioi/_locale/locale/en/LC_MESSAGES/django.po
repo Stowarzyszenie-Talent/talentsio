@@ -3810,7 +3810,7 @@ msgstr "class"
 msgid "terms accepted"
 msgstr "terms accepted"
 
-#: 
+#:
 msgid "talent terms accepted"
 msgstr "I hereby consent to my personal data being processed by Stowarzyszenie Talent."
 
@@ -8359,7 +8359,7 @@ msgstr "First phase only"
 msgid "Without multipliers"
 msgstr "Without multipliers"
 
-#: TALENT 
+#: TALENT
 msgid "Talent open contest"
 msgstr "Talent open contest"
 
@@ -8419,3 +8419,9 @@ msgstr "The required login format is the first letter of the name and the whole 
 
 msgid "Your login must be the following: "
 msgstr "Your login must be the following: "
+
+msgid "Default (group members only)"
+msgstr "Default (group members only)"
+
+msgid "Without multipliers (group members only)"
+msgstr "Without multipliers (group members only)"

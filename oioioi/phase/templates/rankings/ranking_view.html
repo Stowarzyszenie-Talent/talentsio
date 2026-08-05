@@ -17,7 +17,7 @@
                 {% trans "Change ranking type" %}
             </button>
             {% with rc=request.contest.controller.ranking_controller %}
-            <div class="dropdown-menu">
+            <div class="dropdown-menu dropdown-menu-right">
                 {% for type, name in rc.TYPE_NAMES.items %}
                     <a class="dropdown-item" href="#"
                     data-post-url="{% url 'change_phase_ranking_type' key=key rtype=type %}">

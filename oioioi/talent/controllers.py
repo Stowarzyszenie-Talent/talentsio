@@ -48,7 +48,7 @@ class TalentOpenContestController(ProgrammingContestController):
     """
 
     def ranking_controller(self):
-        return PhaseRankingController(self.contest)
+        return TalentPhaseRankingController(self.contest)
 
     def order_submissions_qs(self, pi, qs):
         """TALENT FEATURE: abstract away picking either latest or best
@@ -75,3 +75,22 @@ class TalentContestController(TalentOpenContestController):
 
     def registration_controller(self):
         return ParticipantsController(self.contest)
+
+class TalentPhaseRankingController(PhaseRankingController):
+    RANKING_TYPES = PhaseRankingController.RANKING_TYPES.copy() + ['same_group_phased', 'same_group_clean']
+    BASE_QUERYSETS = PhaseRankingController.BASE_QUERYSETS.copy()
+    BASE_QUERYSETS['same_group_phased'] = BASE_QUERYSETS['default'].all()
+    BASE_QUERYSETS['same_group_clean'] = BASE_QUERYSETS['clean'].all()
+    TYPE_NAMES = PhaseRankingController.TYPE_NAMES.copy()
+    TYPE_NAMES['same_group_phased'] = _("Default (group members only)")
+    TYPE_NAMES['same_group_clean'] = _("Without multipliers (group members only)")
+
+    def filter_users_for_ranking(self, key, queryset):
+        queryset = super().filter_users_for_ranking(key, queryset)
+
+        if self._key_rtype(key).startswith('same_group'):
+            queryset = queryset.filter(
+                talent_registration__contest=self.contest
+            )
+
+        return queryset

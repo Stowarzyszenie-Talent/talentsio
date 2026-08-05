@@ -1,7 +1,7 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# 
+#
 # Translators:
 # Translators:
 # Accounts-Payable - Alkemics, 2015
@@ -10417,6 +10417,12 @@ msgstr "Login musi być postaci pierwsza litera imienia + całe nazwisko. Tylko 
 
 msgid "Your login must be the following: "
 msgstr "Twój login musi być następujący: "
+
+msgid "Default (group members only)"
+msgstr "Domyślny (Bez zawodników spoza grupy)"
+
+msgid "Without multipliers (group members only)"
+msgstr "Bez mnożników (Bez zawodników spoza grupy)"
 
 #: sio fixes
 msgid "unknown"
