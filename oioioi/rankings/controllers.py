@@ -361,6 +361,7 @@ class DefaultRankingController(RankingController):
         users = users.filter(id__in=list(included))
         data = []
         all_rounds_trial = all(r.is_trial for r in rounds)
+        users_without_submits = []
         for user in users.order_by('last_name', 'first_name', 'username'):
             by_user_row = by_user[user.id]
             user_results = []
@@ -393,9 +394,15 @@ class DefaultRankingController(RankingController):
 
             if user_data['sum'] is None:
                 user_data['sum'] = IntegerScore(0)
+                users_without_submits.append(user_data)
+                continue
 
             if self._allow_zero_score() or user_data['sum'].to_int() != 0:
                 data.append(user_data)
+
+        for user_data in users_without_submits:
+            data.append(user_data)
+
         return data
 
     def _assign_places(self, data, extractor):
