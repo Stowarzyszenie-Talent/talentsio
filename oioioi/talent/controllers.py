@@ -1,9 +1,13 @@
+from collections import defaultdict
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import OperationalError, ProgrammingError
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
 
 from oioioi.contests.models import Contest
+from oioioi.contests.scores import IntegerScore
 from oioioi.participants.controllers import ParticipantsController
 from oioioi.phase.controllers import (
     PhaseMixinForContestController,
@@ -11,7 +15,7 @@ from oioioi.phase.controllers import (
 )
 from oioioi.programs.controllers import ProgrammingContestController
 from oioioi.scoresreveal.utils import get_scores_reveal_config
-from oioioi.talent.models import TalentRegistrationSwitch
+from oioioi.talent.models import TalentRegistrationSwitch, TalentRegistration
 
 def _phase_end_human():
     minutes = settings.TALENT_PHASE2_END.seconds // 60
@@ -94,3 +98,62 @@ class TalentPhaseRankingController(PhaseRankingController):
             )
 
         return queryset
+
+    def _always_included_user_ids(self):
+        return set(
+            TalentRegistration.objects.filter(contest=self.contest).values_list(
+                'user_id', flat=True
+            )
+        )
+
+    def _get_users_results(self, pis, results, rounds, users):
+        by_user = defaultdict(dict)
+        for r in results:
+            by_user[r.user_id][r.problem_instance_id] = r
+        included = set(by_user.keys()) | self._always_included_user_ids()
+        users = users.filter(id__in=list(included))
+        data = []
+        all_rounds_trial = all(r.is_trial for r in rounds)
+        users_without_submits = []
+        for user in users.order_by('last_name', 'first_name', 'username'):
+            by_user_row = by_user[user.id]
+            user_results = []
+            user_data = {'user': user, 'results': user_results, 'sum': None}
+
+            for pi in pis:
+                result = by_user_row.get(pi.id)
+                if (
+                    result
+                    and hasattr(result, 'submission_report')
+                    and hasattr(result.submission_report, 'submission_id')
+                ):
+                    submission_id = result.submission_report.submission_id
+                    kwargs = {
+                        'contest_id': self.contest.id,
+                        'submission_id': submission_id,
+                    }
+                    result.url = reverse('submission', kwargs=kwargs)
+
+                user_results.append(result)
+                if (
+                    result
+                    and result.score
+                    and (not pi.round.is_trial or all_rounds_trial)
+                ):
+                    if user_data['sum'] is None:
+                        user_data['sum'] = result.score
+                    else:
+                        user_data['sum'] += result.score
+
+            if user_data['sum'] is None:
+                user_data['sum'] = IntegerScore(0)
+                users_without_submits.append(user_data)
+                continue
+
+            if self._allow_zero_score() or user_data['sum'].to_int() != 0:
+                data.append(user_data)
+
+        for user_data in users_without_submits:
+            data.append(user_data)
+
+        return data

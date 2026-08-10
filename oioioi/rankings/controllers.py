@@ -22,8 +22,6 @@ from oioioi.contests.models import Contest, ProblemInstance, UserResultForProble
 from oioioi.contests.utils import is_contest_basicadmin, is_contest_observer
 from oioioi.filetracker.utils import make_content_disposition_header
 from oioioi.rankings.models import Ranking, RankingPage
-from oioioi.talent.models import TalentRegistration
-from oioioi.contests.scores import IntegerScore
 
 CONTEST_RANKING_KEY = 'c'
 
@@ -357,11 +355,9 @@ class DefaultRankingController(RankingController):
         by_user = defaultdict(dict)
         for r in results:
             by_user[r.user_id][r.problem_instance_id] = r
-        included = set(by_user.keys()) | self._always_included_user_ids()
-        users = users.filter(id__in=list(included))
+        users = users.filter(id__in=list(by_user.keys()))
         data = []
         all_rounds_trial = all(r.is_trial for r in rounds)
-        users_without_submits = []
         for user in users.order_by('last_name', 'first_name', 'username'):
             by_user_row = by_user[user.id]
             user_results = []
@@ -391,18 +387,13 @@ class DefaultRankingController(RankingController):
                         user_data['sum'] = result.score
                     else:
                         user_data['sum'] += result.score
-
-            if user_data['sum'] is None:
-                user_data['sum'] = IntegerScore(0)
-                users_without_submits.append(user_data)
-                continue
-
-            if self._allow_zero_score() or user_data['sum'].to_int() != 0:
-                data.append(user_data)
-
-        for user_data in users_without_submits:
-            data.append(user_data)
-
+            if user_data['sum'] is not None:
+                # This rare corner case with sum being None may happen if all
+                # user's submissions do not have scores (for example the
+                # problems do not support scoring, or all the evaluations
+                # failed with System Errors).
+                if self._allow_zero_score() or user_data['sum'].to_int() != 0:
+                    data.append(user_data)
         return data
 
     def _assign_places(self, data, extractor):
@@ -441,20 +432,6 @@ class DefaultRankingController(RankingController):
             'submission_report',
             'problem_instance',
             'problem_instance__contest',
-        )
-
-    def _always_included_user_ids(self):
-        """Ids of users shown in the ranking even if they have no results.
-
-        Everyone registered for the contest is listed, so that participants
-        who did not submit anything still appear. Users with results are
-        added on top of this set by :meth:`_get_users_results`, which is
-        what keeps submitters from other contests in the ranking.
-        """
-        return set(
-            TalentRegistration.objects.filter(contest=self.contest).values_list(
-                'user_id', flat=True
-            )
         )
 
     def serialize_ranking(self, key):
