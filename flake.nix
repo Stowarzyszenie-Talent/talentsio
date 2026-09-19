@@ -7,7 +7,7 @@
     inputs.nixpkgs.follows = "nixpkgs";
   };
   inputs.sioworkers = {
-    url = "github:Stowarzyszenie-Talent/sioworkers/io-interactive-trial";
+    url = "github:Stowarzyszenie-Talent/sioworkers/affinity";
     inputs.nixpkgs.follows = "nixpkgs";
     inputs.filetracker.follows = "filetracker";
   };
