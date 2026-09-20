@@ -509,7 +509,7 @@ in
         #Type Path                           Mode User Group Age  Argument
         "d /var/log/sio2                     2750 root wheel - -"
         "d /var/cache/sio2-filetracker-cache 2770 root sio2-filetracker - -"
-        "A /var/cache/sio2-filetracker-cache - - - - u::rwx,d:g::rwx,o::---"
+        "A /var/cache/sio2-filetracker-cache - - - - d:u::rwx,d:g::rwx,d:o::---"
       ];
 
       systemd.targets = {
