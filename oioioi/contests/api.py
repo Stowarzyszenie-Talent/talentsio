@@ -4,9 +4,10 @@ from oioioi.base.utils.api import make_path_coreapi_schema
 from oioioi.contests.forms import SubmissionFormForProblemInstance
 from oioioi.contests.models import Contest, ProblemInstance
 from oioioi.contests.serializers import SubmissionSerializer
-from oioioi.contests.utils import can_enter_contest
+from oioioi.contests.utils import can_enter_contest, visible_contests
 from oioioi.problems.models import Problem
 from rest_framework import permissions, status, views
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -16,6 +17,13 @@ from rest_framework.schemas import AutoSchema
 class CanEnterContest(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return can_enter_contest(request)
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def contest_list(request):
+    cs = sorted(visible_contests(request), key=lambda c: c.creation_date, reverse=True)
+    return Response([{'id': c.id, 'name': c.name} for c in cs])
 
 
 class GetProblemIdView(views.APIView):
