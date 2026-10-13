@@ -1,18 +1,21 @@
 { pkgs
 , lib
+, stdenv
 , buildPythonPackage
 , fetchPypi
-, pythonAtLeast
-, python
+, nix-gitignore
 
+  # js native build inputs
+, cacert
+, nodejs
+
+  # python native build inputs
 , poetry-core
 , six
-, libsass
-, setuptools
-, setuptools_scm
-, watchdog
-, supervisor
+, sox
+, flite
 
+  # python build inputs
 , pytz
 , sqlalchemy
 , django
@@ -54,9 +57,12 @@
 , django-simple-captcha
 , phonenumbers
 , pdfminer-six
-
+, watchdog
+, supervisor
 , sioworkers
 , psycopg2
+
+, texlive
 
 , ...
 }:
@@ -166,7 +172,7 @@ let
       python-monkey-business
     ];
   };
-  django-supervisor = simplePackage rec {
+  django-supervisor = simplePackage {
     name = "django-supervisor";
     version = "0.4.0";
 
@@ -183,15 +189,64 @@ let
 
     propagatedBuildInputs = [ supervisor watchdog ];
   };
+  version = "unstable-2025-06-17";
+  # I couldn't get node2nix to work here.
+  # (some package directories in node_modules would end up mysteriously empty)
+  # So instead just run npm ci in a fixed-output derivation.
+  nodeModules = stdenv.mkDerivation {
+    name = "oioioi-node_modules";
+
+    nativeBuildInputs = [ cacert ];
+
+    src = nix-gitignore.gitignoreSourcePure [
+      "*"
+      "!/package.json"
+      "!/package-lock.json"
+    ] ./..;
+
+    buildPhase = ''HOME="$TMPDIR" ${nodejs}/bin/npm ci'';
+    installPhase = ''mkdir -p $out/lib; mv node_modules $out/lib'';
+
+    # "fixed-output derivations must not reference store paths"
+    # (there is some random "pre-commit" shell script in the output)
+    dontPatchShebangs = true;
+
+    outputHash = "sha256-UUD/B3Cir873f/i6e6oSiMgsfe593jNIu3Wec8aluMQ=";
+    outputHashMode = "recursive";
+  };
+  webpackDist = stdenv.mkDerivation {
+    pname = "oioioi-webpack";
+    inherit version;
+
+    src = nix-gitignore.gitignoreSourcePure ''
+      *
+      !/oioioi
+      !/oioioi/**
+      !/webpack.config.js
+      !/package.json
+      !/package-lock.json
+    '' ./..;
+
+    nativeBuildInputs = [ nodejs ];
+
+    buildPhase = ''
+      ln -sf ${nodeModules}/lib/node_modules .
+      node node_modules/.bin/webpack --mode production
+    '';
+
+    installPhase = ''
+      mv dist_webpack "$out"
+    '';
+  };
 in
 buildPythonPackage rec {
   name = "oioioi";
-  version = "unstable-2023-03-12";
+  inherit version;
 
-  src = builtins.path {
-    path = ./..;
-    filter = path: type: builtins.match "(.*/nix|.*/flake\\..*)" path == null;
-  };
+  src = nix-gitignore.gitignoreSource ''
+    /nix
+    /flake.*
+  '' ./..;
 
   postPatch = ''
     sed -i 's/"django-supervisor.*$/"django-supervisor",/' setup.py
@@ -205,18 +260,20 @@ buildPythonPackage rec {
   SIOWORKERS_SANDBOXES_URL = "https://otsrv.net/sandboxes/";
 
   passthru = {
-    o-texlive = (
-      pkgs.texlive.combine { inherit (pkgs.texlive)
+    o-texlive = texlive.combine {
+      inherit (texlive)
         scheme-small collection-langpolish collection-fontsrecommended
         collection-latexrecommended collection-latexextra
         pst-barcode tex-gyre pstricks auto-pst-pdf pst-pdf
         pslatex luatex85 epsf;
-    });
+    };
     inherit celery;
+    inherit nodeModules;
+    inherit webpackDist;
   };
 
   # This just for running tests in `nix develop`.
-  nativeBuildInputs = [ poetry-core pytest pkgs.sox pkgs.flite passthru.o-texlive ];
+  nativeBuildInputs = [ poetry-core pytest sox flite passthru.o-texlive ];
   buildInputs = with pkgs; [ gcc glibc.static fpc ];
 
   propagatedBuildInputs = [
@@ -271,7 +328,7 @@ buildPythonPackage rec {
     psycopg2 # postgresql support
   ];
 
-  meta = with pkgs.lib; {
+  meta = with lib; {
     description = "The main component of the SIO2 project";
     homepage = "https://github.com/sio2project/oioioi";
     # license = licenses.gpl3;

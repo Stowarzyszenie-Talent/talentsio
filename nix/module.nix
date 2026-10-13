@@ -207,6 +207,11 @@ in
           STATIC_ROOT = "/var/lib/sio2/static/${hash}";
           STATIC_URL = "/static/${hash}/";
 
+          STATICFILES_DIRS = [
+            "${package.nodeModules}/lib/node_modules"
+            "${package.webpackDist}"
+          ];
+
           DATABASES.default = {
             ENGINE = "django.db.backends.postgresql";
             ATOMIC_REQUESTS = true;
