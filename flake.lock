@@ -29,11 +29,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1750272194,
-        "narHash": "sha256-wAMChr/lCKFOCEI5UkgrEDBdWXgRXmM+TZOMn2tOMhQ=",
+        "lastModified": 1745063354,
+        "narHash": "sha256-/cKFxI7trkm8zeo0HC9VA6pVWwwIZUcvpSv4CIGNsQ8=",
         "owner": "Stowarzyszenie-Talent",
         "repo": "filetracker",
-        "rev": "ec5e3dd005baf4f82bd822ba06c34e3992f875f2",
+        "rev": "e1485f7f373ee95199a1254a675c7715c4177660",
         "type": "github"
       },
       "original": {
@@ -65,11 +65,11 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1731533236,
-        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "lastModified": 1694529238,
+        "narHash": "sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt+xmY=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "rev": "ff7b65b44d01cf9ba6a71320833626af21126384",
         "type": "github"
       },
       "original": {
@@ -116,16 +116,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1762852306,
-        "narHash": "sha256-VZZdJBeCgttt66Su2Qd97cpx1cjlyzmuq8LVJV1Q+sA=",
+        "lastModified": 1735651292,
+        "narHash": "sha256-YLbzcBtYo1/FEzFsB3AnM16qFc6fWPMIoOuSoDwvg9g=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "0b5980c4cf100adaf575272e371acaf49fba7c44",
+        "rev": "0da3c44a9460a26d2025ec3ed2ec60a895eb1114",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "release-25.05",
+        "ref": "release-24.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -150,11 +150,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1762858252,
-        "narHash": "sha256-efI6iXc+Vjc8j+5YFih2XvkEo5kcwyM3McVAMVaFnX0=",
+        "lastModified": 1750159227,
+        "narHash": "sha256-XIegRqNAnvAZDqou5SGE9O2zUU578xXEK++Xy0hYbhM=",
         "owner": "Stowarzyszenie-Talent",
         "repo": "sioworkers",
-        "rev": "521e75218ecf346a9f36f634de3ad1eee36ebdc6",
+        "rev": "8641db72a1fc42616f498aea936d8f4fd806f1a9",
         "type": "github"
       },
       "original": {

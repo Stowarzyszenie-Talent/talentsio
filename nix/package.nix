@@ -48,9 +48,8 @@
 , pika
 , raven
 , unidecode
-#, sentry-sdk
+, sentry-sdk
 , fontawesomefree
-, humanize
 , filetracker
 , django-simple-captcha
 , phonenumbers
@@ -187,7 +186,7 @@ let
 in
 buildPythonPackage rec {
   name = "oioioi";
-  version = "unstable-2025-11-11";
+  version = "unstable-2023-03-12";
 
   src = builtins.path {
     path = ./..;
@@ -196,7 +195,6 @@ buildPythonPackage rec {
 
   postPatch = ''
     sed -i 's/"django-supervisor.*$/"django-supervisor",/' setup.py
-    sed -i 's/"sentry-sdk$/#"sentry-sdk/' setup.py
   '';
 
   doCheck = false;
@@ -259,10 +257,9 @@ buildPythonPackage rec {
     pika
     raven
     unidecode
-    #sentry-sdk
+    sentry-sdk
     fontawesomefree
     o-django-nested-admin
-    humanize
     filetracker
     django-simple-captcha
     phonenumbers
