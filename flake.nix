@@ -1,6 +1,6 @@
 {
   description = "The main component of the SIO2 project";
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/release-25.05";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/release-24.05";
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.filetracker = {
     url = "github:Stowarzyszenie-Talent/filetracker";
@@ -48,14 +48,8 @@
           inherit system overlays;
         };
       in
-      rec {
-        packages.default = pkgs.python312Packages.callPackage ./nix/package.nix { };
-        devShells.default = let asd = packages.default; in pkgs.mkShell {
-          packages = [ asd asd.nativeBuildInputs asd.buildInputs];
-          shellHook = ''
-            export PYTHONPATH=".:$PYTHONPATH"
-          '';
-        };
+      {
+        packages.default = pkgs.python311Packages.callPackage ./nix/package.nix { };
         packages.extra-container = extra-container.lib.buildContainers {
           inherit nixpkgs system;
 
